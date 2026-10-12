@@ -27,11 +27,14 @@ def _target_branch() -> str:
 def git_commit_and_push(dry_run: bool = False):
     """Добавляет изменённые файлы в индекс, делает коммит и пушит."""
     try:
+        paths = [
+            os.path.relpath(GITHUBMIRROR_DIR, GIT_ROOT),
+            os.path.relpath(QRCODES_DIR, GIT_ROOT),
+        ]
+        if os.path.exists(README_PATH):
+            paths.append(os.path.relpath(README_PATH, GIT_ROOT))
         subprocess.run(
-            ["git", "add",
-             os.path.relpath(GITHUBMIRROR_DIR, GIT_ROOT),
-             os.path.relpath(QRCODES_DIR, GIT_ROOT),
-             os.path.relpath(README_PATH, GIT_ROOT)],
+            ["git", "add", *paths],
             check=True,
             cwd=GIT_ROOT,
         )
