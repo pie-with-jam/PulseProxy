@@ -145,7 +145,7 @@ def tcp_ping(host: str, port: int, timeout: float) -> socket.socket | None:
     """TCP-тест: возвращает живой сокет или None."""
     try:
         return socket.create_connection((host, port), timeout=timeout)
-    except OSError:
+    except Exception:
         return None
 
 

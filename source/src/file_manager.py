@@ -22,7 +22,7 @@ from src.config import (
 from src.logger import log
 from src.network import fetch_data, _format_fetch_error
 from src.parser import filter_insecure_configs
-from src.cidr import refresh_cidr_whitelist, ip_in_whitelist, host_in_whitelist
+from src.cidr import refresh_cidr_whitelist, host_in_whitelist
 from src.healthcheck import extract_endpoint, probe, ProbeResult
 
 # -------------------- ЛОКАЛЬНЫЕ ФАЙЛЫ --------------------
@@ -203,48 +203,55 @@ def create_filtered_configs() -> str:
         save_to_local_file(special_path, "")
         return special_path
 
-    # ---- 3. Белый список (SNI/CIDR) + healthcheck ----
-    def _whitelisted(line: str, peer_ip: str | None) -> bool:
+    # ---- 3. Белый список (SNI/CIDR) до healthcheck, чтобы не пинговать миллионы ----
+    def _whitelisted_static(line: str) -> bool:
         if sni_regex.search(line):
             return True
         ep = extract_endpoint(line)
-        if ep and host_in_whitelist(ep.host, cidr_networks):
-            return True
-        if peer_ip and ip_in_whitelist(peer_ip, cidr_networks):
-            return True
-        return False
+        return bool(ep and host_in_whitelist(ep.host, cidr_networks))
 
-    dropped_dead = 0
     dropped_not_whitelisted = 0
+    to_probe: list[str] = []
+    for line in candidates:
+        if line in own_set or _whitelisted_static(line):
+            to_probe.append(line)
+        else:
+            dropped_not_whitelisted += 1
+
+    log(
+        f"🔎 Белый список ({SPECIAL_FILE_NAME}): {len(to_probe)} кандидатов "
+        f"из {len(candidates)} (вне белого списка: {dropped_not_whitelisted})"
+    )
+
+    # ---- 4. Healthcheck только кандидатов из белого списка ----
+    dropped_dead = 0
     drop_reasons: dict[str, int] = {}
     unique_configs: list[str] = []
 
-    if HEALTHCHECK_ENABLED:
+    if HEALTHCHECK_ENABLED and to_probe:
         max_workers = max(1, HEALTHCHECK_WORKERS)
 
         def _check(line: str) -> tuple[str, ProbeResult]:
-            return line, probe(line, HEALTHCHECK_TIMEOUT)
+            try:
+                return line, probe(line, HEALTHCHECK_TIMEOUT)
+            except Exception as e:
+                return line, ProbeResult(False, None, f"ошибка probe: {type(e).__name__}")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            for line, result in executor.map(_check, candidates):
+            for line, result in executor.map(_check, to_probe):
                 if not result.alive:
                     dropped_dead += 1
                     drop_reasons[result.reason] = drop_reasons.get(result.reason, 0) + 1
                     continue
-                if line not in own_set and not _whitelisted(line, result.peer_ip):
-                    dropped_not_whitelisted += 1
-                    continue
                 unique_configs.append(line)
-        log(f"🩺 Healthcheck ({SPECIAL_FILE_NAME}): живые {len(unique_configs)} из {len(candidates)}")
+        log(f"🩺 Healthcheck ({SPECIAL_FILE_NAME}): живые {len(unique_configs)} из {len(to_probe)}")
         for reason, count in sorted(drop_reasons.items(), key=lambda x: -x[1]):
             log(f"   ├─ мёртвые ({reason}): {count}")
+    elif not HEALTHCHECK_ENABLED:
+        unique_configs = to_probe
+        log(f"🏥 Healthcheck отключён — в файле {len(unique_configs)} конфигов")
     else:
-        for line in candidates:
-            if line in own_set or _whitelisted(line, None):
-                unique_configs.append(line)
-            else:
-                dropped_not_whitelisted += 1
-        log(f"🏥 Healthcheck отключён — отсеяно вне белого списка: {dropped_not_whitelisted}")
+        log(f"⚠️ Нет кандидатов после белого списка для {SPECIAL_FILE_NAME}")
 
     try:
         with open(special_path, "w", encoding="utf-8") as f:
