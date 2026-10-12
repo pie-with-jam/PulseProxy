@@ -3,6 +3,7 @@ import urllib.parse
 import json
 import re
 import base64
+import threading
 import concurrent.futures
 from src.config import (
     URLS,
@@ -20,12 +21,42 @@ from src.config import (
     HEALTHCHECK_WORKERS,
 )
 from src.logger import log
-from src.network import fetch_data, _format_fetch_error
+from src.network import fetch_data, NotModified, _format_fetch_error
 from src.parser import filter_insecure_configs
 from src.cidr import refresh_cidr_whitelist, host_in_whitelist
 from src.healthcheck import extract_endpoint, probe, ProbeResult
 
 # -------------------- ЛОКАЛЬНЫЕ ФАЙЛЫ --------------------
+
+_ETAGS_PATH = os.path.join(GITHUBMIRROR_DIR, ".etags.json")
+_etags_lock = threading.Lock()
+
+
+def _load_etags() -> dict:
+    try:
+        with open(_ETAGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_etag(url: str, etag: str | None):
+    if not etag:
+        return
+    with _etags_lock:
+        etags = _load_etags()
+        if etags.get(url) == etag:
+            return
+        etags[url] = etag
+        try:
+            os.makedirs(os.path.dirname(_ETAGS_PATH), exist_ok=True)
+            tmp = _ETAGS_PATH + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(etags, f, ensure_ascii=False, indent=0)
+            os.replace(tmp, _ETAGS_PATH)
+        except Exception:
+            pass
 
 def save_to_local_file(path: str, content: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -47,13 +78,27 @@ def extract_source_name(url: str) -> str:
 
 
 def download_and_save(idx: int) -> tuple[str, int] | None:
-    """Скачивает файл, фильтрует и сохраняет локально.
+    """Скачивает файл (с If-None-Match по ETag), фильтрует и сохраняет локально.
     Возвращает (local_path, file_index) если файл изменился, иначе None."""
     url = URLS[idx]
     local_path = LOCAL_PATHS[idx]
     file_index = idx + 1
     try:
-        data = fetch_data(url)
+        cached_etag = _load_etags().get(url)
+        try:
+            result = fetch_data(url, etag=cached_etag, return_etag=True)
+        except NotModified:
+            config_count = 0
+            try:
+                with open(local_path, "r", encoding="utf-8") as f:
+                    config_count = len([line for line in f if line.strip()])
+            except Exception:
+                pass
+            log(f"🔄 304: {file_index}.txt не изменился ({config_count} конфигов).")
+            return None
+
+        data, new_etag = result
+        _save_etag(url, new_etag)
         data, _ = filter_insecure_configs(local_path, data)
 
         if os.path.exists(local_path):

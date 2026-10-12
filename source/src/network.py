@@ -37,19 +37,28 @@ REQUESTS_SESSION = _build_session(max_pool_size=max(DEFAULT_MAX_WORKERS, len(URL
 
 # -------------------- ПОЛУЧЕНИЕ ДАННЫХ --------------------
 
+class NotModified(Exception):
+    """Сервер ответил 304 Not Modified (контент не изменился)."""
+
+
 def fetch_data(
     url: str,
     timeout: int = 10,
     max_attempts: int = 3,
     session: requests.Session | None = None,
     allow_http_downgrade: bool = True,
-) -> str:
+    etag: str | None = None,
+    return_etag: bool = False,
+) -> str | tuple[str, str | None]:
+    """Скачивает URL. С etag=... шлёт If-None-Match; при 304 бросает NotModified.
+    return_etag=True — возвращает (text, new_etag) вместо text."""
     sess = session or REQUESTS_SESSION
     last_exc: Exception = RuntimeError("No attempts made")
     for attempt in range(1, max_attempts + 1):
         try:
             modified_url = url
             verify = True
+            headers: dict[str, str] = {}
 
             if attempt == 2:
                 verify = False
@@ -59,10 +68,23 @@ def fetch_data(
                     modified_url = parsed._replace(scheme="http").geturl()
                 verify = False
 
-            response = sess.get(modified_url, timeout=timeout, verify=verify)
+            if etag and attempt == 1:
+                headers["If-None-Match"] = etag
+
+            response = sess.get(
+                modified_url, timeout=timeout, verify=verify,
+                headers=headers or None,
+            )
+            if response.status_code == 304:
+                raise NotModified(url)
             response.raise_for_status()
+            new_etag = response.headers.get("ETag") or response.headers.get("Last-Modified")
+            if return_etag:
+                return response.text, new_etag
             return response.text
 
+        except NotModified:
+            raise
         except requests.exceptions.RequestException as exc:
             last_exc = exc
             if attempt < max_attempts:

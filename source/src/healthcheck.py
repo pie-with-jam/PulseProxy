@@ -149,13 +149,22 @@ def tcp_ping(host: str, port: int, timeout: float) -> socket.socket | None:
         return None
 
 
-def tls_handshake(host: str, port: int, server_hostname: str | None, timeout: float) -> bool:
-    """Проверка живого TLS/SNI: рукопожатие с указанным SNI (без валидации сертификата)."""
+def tls_handshake(
+    host: str,
+    port: int,
+    server_hostname: str | None,
+    timeout: float,
+    sock: socket.socket | None = None,
+) -> bool:
+    """Проверка живого TLS/SNI: рукопожатие (без валидации сертификата).
+    Если передан открытый сокет — используется он (одно соединение вместо двух)."""
     try:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-        with socket.create_connection((host, port), timeout=timeout) as sock:
+        if sock is None:
+            sock = socket.create_connection((host, port), timeout=timeout)
+        with sock:
             with ctx.wrap_socket(sock, server_hostname=server_hostname) as tls:
                 return tls.version() is not None
     except Exception:
@@ -170,13 +179,33 @@ class ProbeResult:
 
 
 def probe(line: str, timeout: float) -> ProbeResult:
-    """Проверка конфига: TCP-пинг, затем (если есть TLS) живой SNI/SNI+IP."""
+    """Проверка конфига одним соединением:
+    TLS-конфиги — сразу TLS/SNI-хендшейк (TCP жив по определению),
+    нетLS — TCP-пинг."""
     ep = extract_endpoint(line)
     if not ep:
         return ProbeResult(False, None, "не разобран")
 
-    sock = tcp_ping(ep.host, ep.port, timeout)
-    if sock is None:
+    if not ep.uses_tls:
+        sock = tcp_ping(ep.host, ep.port, timeout)
+        if sock is None:
+            return ProbeResult(False, None, "TCP-пинг")
+        peer_ip = None
+        try:
+            peer_ip = sock.getpeername()[0]
+        except OSError:
+            pass
+        finally:
+            try:
+                sock.close()
+            except OSError:
+                pass
+        return ProbeResult(True, peer_ip, "")
+
+    # TLS: одно соединение — TCP + хендшейк
+    try:
+        sock = socket.create_connection((ep.host, ep.port), timeout=timeout)
+    except Exception:
         return ProbeResult(False, None, "TCP-пинг")
 
     peer_ip = None
@@ -184,16 +213,15 @@ def probe(line: str, timeout: float) -> ProbeResult:
         peer_ip = sock.getpeername()[0]
     except OSError:
         pass
-    finally:
+
+    # SNI: явный из конфига, иначе сам хост (если не IP)
+    server_hostname = ep.sni or (ep.host if not _is_ip(ep.host) else None)
+    if not tls_handshake(ep.host, ep.port, server_hostname, timeout, sock=sock):
+        # tls_handshake закрывает сокет внутри with; на случай исключения до этого:
         try:
             sock.close()
         except OSError:
             pass
-
-    if ep.uses_tls:
-        # SNI: явный из конфига, иначе сам хост (если не IP)
-        server_hostname = ep.sni or (ep.host if not _is_ip(ep.host) else None)
-        if not tls_handshake(ep.host, ep.port, server_hostname, timeout):
-            return ProbeResult(False, peer_ip, "TLS/SNI-хендшейк")
+        return ProbeResult(False, peer_ip, "TLS/SNI-хендшейк")
 
     return ProbeResult(True, peer_ip, "")
