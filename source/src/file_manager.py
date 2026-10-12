@@ -24,7 +24,7 @@ from src.logger import log
 from src.network import fetch_data, NotModified, _format_fetch_error
 from src.parser import filter_insecure_configs
 from src.cidr import refresh_cidr_whitelist, host_in_whitelist
-from src.healthcheck import extract_endpoint, probe, ProbeResult
+from src.healthcheck import extract_endpoint, probe, ProbeResult, _is_ip as _is_ip_literal
 
 # -------------------- ЛОКАЛЬНЫЕ ФАЙЛЫ --------------------
 
@@ -123,27 +123,33 @@ def download_and_save(idx: int) -> tuple[str, int] | None:
 
 # -------------------- СПЕЦИАЛЬНЫЙ ФАЙЛ (БЕЛЫЕ СПИСКИ) --------------------
 
-def _load_sni_regex() -> re.Pattern | None:
-    """Regex по белому списку SNI-доменов (sni_domains.json)."""
+def _load_sni_domains() -> set[str] | None:
+    """Загружает белый список SNI-доменов (sni_domains.json) как множество."""
     try:
         with open(SNI_DOMAINS_PATH, "r", encoding="utf-8") as f:
             sni_domains = json.load(f)
+        return {str(d).strip().lower() for d in sni_domains if str(d).strip()}
     except Exception as e:
         log(f"❌ Ошибка загрузки {SNI_DOMAINS_PATH}: {e}")
         return None
 
-    # Оптимизация: убираем домены, которые являются подстрокой уже добавленных
-    sorted_domains = sorted(sni_domains, key=len)
-    optimized_domains: list[str] = []
-    for d in sorted_domains:
-        if not any(existing in d for existing in optimized_domains):
-            optimized_domains.append(d)
 
-    try:
-        return re.compile(r"(?:" + "|".join(re.escape(d) for d in optimized_domains) + r")")
-    except Exception as e:
-        log(f"❌ Ошибка компиляции Regex: {e}")
-        return None
+def _sni_in_whitelist(sni: str | None, domains: set[str]) -> bool:
+    """SNI в белом списке: точное совпадение или поддомен белого домена.
+    Проверяется РЕАЛЬНЫЙ SNI из конфига, а не вся строка."""
+    if not sni or not domains:
+        return False
+    host = sni.strip().lower().rstrip(".")
+    if not host:
+        return False
+    if host in domains:
+        return True
+    # поддомен: id.vk.com → vk.com, xxx.userapi.com → userapi.com
+    parts = host.split(".")
+    for i in range(1, len(parts)):
+        if ".".join(parts[i:]) in domains:
+            return True
+    return False
 
 
 def _collect_source_lines() -> list[str]:
@@ -193,8 +199,8 @@ def create_filtered_configs() -> str:
     """Создаёт спецфайл: конфиги, прошедшие белые списки (SNI/CIDR) и healthcheck."""
     special_path = os.path.join(GITHUBMIRROR_DIR, SPECIAL_FILE_NAME)
 
-    sni_regex = _load_sni_regex()
-    if sni_regex is None:
+    sni_domains = _load_sni_domains()
+    if sni_domains is None:
         return special_path
 
     cidr_networks = refresh_cidr_whitelist()
@@ -248,12 +254,17 @@ def create_filtered_configs() -> str:
         save_to_local_file(special_path, "")
         return special_path
 
-    # ---- 3. Белый список (SNI/CIDR) до healthcheck, чтобы не пинговать миллионы ----
+    # ---- 3. Белый список (реальный SNI / CIDR IP) до healthcheck ----
     def _whitelisted_static(line: str) -> bool:
-        if sni_regex.search(line):
-            return True
         ep = extract_endpoint(line)
-        return bool(ep and host_in_whitelist(ep.host, cidr_networks))
+        if not ep:
+            return False
+        # Реальный SNI (или host, если SNI не задан) — белый домен
+        effective_sni = ep.sni or (ep.host if not _is_ip_literal(ep.host) else None)
+        if effective_sni and _sni_in_whitelist(effective_sni, sni_domains):
+            return True
+        # IP-хост в русских мобильных подсетях (CIDR)
+        return bool(host_in_whitelist(ep.host, cidr_networks))
 
     dropped_not_whitelisted = 0
     to_probe: list[str] = []
