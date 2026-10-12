@@ -1,0 +1,5 @@
+requests
+PyGithub
+tzdata
+qrcode
+pillow
