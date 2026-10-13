@@ -25,6 +25,7 @@ from src.network import fetch_data, NotModified, _format_fetch_error
 from src.parser import filter_insecure_configs
 from src.cidr import refresh_cidr_whitelist, host_in_whitelist
 from src.healthcheck import extract_endpoint, probe, ProbeResult, _is_ip as _is_ip_literal
+from src.validator import validate_configs
 
 # -------------------- ЛОКАЛЬНЫЕ ФАЙЛЫ --------------------
 
@@ -253,6 +254,18 @@ def create_filtered_configs() -> str:
         log(f"⚠️ Нет кандидатов для {SPECIAL_FILE_NAME}")
         save_to_local_file(special_path, "")
         return special_path
+
+    # ---- 2.5 Валидация структуры (битые URI ломают проверку в V2rayNG) ----
+    total_amp = sum(1 for c in candidates if "&amp;" in c)
+    if total_amp:
+        candidates = [c.replace("&amp;", "&") if "&amp;" in c else c for c in candidates]
+        log(f"🔧 Починено HTML-экранирование &amp; → &: {total_amp} конфигов")
+    candidates, invalid_reasons = validate_configs(candidates)
+    if invalid_reasons:
+        dropped_invalid = sum(invalid_reasons.values())
+        log(f"🗑️ Отсеяно битых конфигов: {dropped_invalid}")
+        for reason, count in sorted(invalid_reasons.items(), key=lambda x: -x[1]):
+            log(f"   ├─ {reason}: {count}")
 
     # ---- 3. Белый список (реальный SNI / CIDR IP) до healthcheck ----
     def _whitelisted_static(line: str) -> bool:
