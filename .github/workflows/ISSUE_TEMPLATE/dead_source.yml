@@ -1,0 +1,19 @@
+name: Мёртвый источник
+description: Сообщить об упавшем репозитории или неактуальной ссылке
+title: "[Source]: "
+labels: ["source", "triage"]
+body:
+  - type: input
+    id: source_num
+    attributes:
+      label: Номер файла или ссылка на источник
+      placeholder: "Например: 16.txt или ссылка на Pawdroid/Free-servers"
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: В чём проблема?
+      placeholder: "Ссылка возвращает 404 / репозиторий удалён / автор закрыл доступ"
+    validations:
+      required: true
