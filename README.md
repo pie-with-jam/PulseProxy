@@ -404,4 +404,12 @@ PulseProxy — форк с доработками: добавлены healthchec
 
 ---
 
-<!-- 💰 Поддержать автора — заполните своими реквизитами (при желании) -->
+<!-- 💰 Поддержать автора -->
+
+Если проект оказался полезным, вы можете поддержать его развитие:
+
+| Сеть / Монета | Адрес для перевода | QR-код |
+| :--- | :--- | :---: |
+| **USDT (TON)** | `UQBcrOMKtoHYBhg0UtzoLCQobvO15Av-c8ICnLeHIwBV75ie` | <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=UQBcrOMKtoHYBhg0UtzoLCQobvO15Av-c8ICnLeHIwBV75ie" width="130" height="130" alt="USDT TON QR"> |
+
+> ⚠️ **Внимание:** отправляйте только **USDT в сети TON**.
