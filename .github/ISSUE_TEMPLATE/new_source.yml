@@ -1,0 +1,23 @@
+name: Предложить источник / SNI / CIDR
+description: Предложить новый публичный список или пул доменов/IP
+title: "[Proposal]: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Категория
+      options:
+        - "Новый источник (общий, в urls.json)"
+        - "Источник для белых списков (30_urls.json)"
+        - "Новый диапазон CIDR (cidrwhitelist.txt)"
+        - "Новые SNI (sni_domains.json)"
+    validations:
+      required: true
+  - type: textarea
+    id: content
+    attributes:
+      label: Ссылка или список данных
+      placeholder: "Вставьте ссылки на raw-файлы или CIDR-нотации"
+    validations:
+      required: true
