@@ -17,8 +17,11 @@ from src.config import (
     SOURCE_COUNT,
     SPECIAL_FILE_NAME,
     HEALTHCHECK_ENABLED,
+    HEALTHCHECK_MODE,
     HEALTHCHECK_TIMEOUT,
     HEALTHCHECK_WORKERS,
+    PROXY_GET_TIMEOUT,
+    PROXY_GET_WORKERS,
 )
 from src.logger import log
 from src.network import fetch_data, NotModified, _format_fetch_error
@@ -297,23 +300,74 @@ def create_filtered_configs() -> str:
     drop_reasons: dict[str, int] = {}
     unique_configs: list[str] = []
 
-    if HEALTHCHECK_ENABLED and to_probe:
-        max_workers = max(1, HEALTHCHECK_WORKERS)
+    def _run_stage(
+        lines: list[str],
+        check,
+        workers: int,
+        stage_label: str,
+    ) -> list[str]:
+        """Прогоняет check по lines; возвращает живых. Мёртвые копятся в drop_reasons."""
+        nonlocal dropped_dead
+        alive: list[str] = []
 
-        def _check(line: str) -> tuple[str, ProbeResult]:
+        def _one(line: str) -> tuple[str, object]:
             try:
-                return line, probe(line, HEALTHCHECK_TIMEOUT)
+                return line, check(line)
             except Exception as e:
-                return line, ProbeResult(False, None, f"ошибка probe: {type(e).__name__}")
+                from src.healthcheck import ProbeResult as _PR
+                return line, _PR(False, None, f"ошибка {stage_label}: {type(e).__name__}")
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            for line, result in executor.map(_check, to_probe):
-                if not result.alive:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+            for line, result in executor.map(_one, lines):
+                if result is None or not result.alive:
                     dropped_dead += 1
-                    drop_reasons[result.reason] = drop_reasons.get(result.reason, 0) + 1
+                    reason = result.reason if result is not None else f"{stage_label}: нет вердикта"
+                    drop_reasons[reason] = drop_reasons.get(reason, 0) + 1
                     continue
-                unique_configs.append(line)
-        log(f"🩺 Healthcheck ({SPECIAL_FILE_NAME}): живые {len(unique_configs)} из {len(to_probe)}")
+                alive.append(line)
+        return alive
+
+    if HEALTHCHECK_ENABLED and to_probe:
+        alive = to_probe
+
+        # Стадия A — быстрый TCP/TLS (кроме режима только-proxy).
+        if HEALTHCHECK_MODE in ("hybrid", "tcp"):
+            alive = _run_stage(
+                alive,
+                lambda line: probe(line, HEALTHCHECK_TIMEOUT),
+                HEALTHCHECK_WORKERS,
+                "TCP",
+            )
+            log(
+                f"🩺 Healthcheck TCP ({SPECIAL_FILE_NAME}): живых {len(alive)} "
+                f"из {len(to_probe)}"
+            )
+        else:
+            log(f"🩺 Healthcheck TCP пропущен (режим {HEALTHCHECK_MODE})")
+
+        # Стадия B — реальный GET через сам прокси (кроме режима только-tcp).
+        if HEALTHCHECK_MODE in ("hybrid", "proxy") and alive:
+            from src.proxy_probe import ensure_xray, proxy_get
+
+            if ensure_xray():
+                alive_b = _run_stage(
+                    alive,
+                    lambda line: proxy_get(line, PROXY_GET_TIMEOUT),
+                    PROXY_GET_WORKERS,
+                    "proxy-GET",
+                )
+                log(
+                    f"🩺 Healthcheck proxy-GET ({SPECIAL_FILE_NAME}): живых "
+                    f"{len(alive_b)} из {len(alive)} (после TCP: {len(alive)})"
+                )
+                alive = alive_b
+            else:
+                log(
+                    f"⚠️ proxy-GET пропущен (xray недоступен) — остались "
+                    f"результаты TCP: {len(alive)}"
+                )
+
+        unique_configs = alive
         for reason, count in sorted(drop_reasons.items(), key=lambda x: -x[1]):
             log(f"   ├─ мёртвые ({reason}): {count}")
     elif not HEALTHCHECK_ENABLED:

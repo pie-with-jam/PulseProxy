@@ -88,6 +88,21 @@ DEFAULT_MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "16"))
 
 # -------------------- HEALTHCHECK СПЕЦФАЙЛА --------------------
 # Живость конфигов в спецфайле: TCP-пинг + TLS/SNI-хендшейк.
+# Режимы: hybrid — TCP-предфильтр, затем GET через прокси (рекомендуется);
+# tcp — только TCP/TLS; proxy — только GET через прокси (без предфильтра).
 HEALTHCHECK_ENABLED = os.environ.get("HEALTHCHECK", "1") != "0"
+HEALTHCHECK_MODE = os.environ.get("HEALTHCHECK_MODE", "hybrid").lower()
+if HEALTHCHECK_MODE not in ("hybrid", "tcp", "proxy"):
+    HEALTHCHECK_MODE = "hybrid"
 HEALTHCHECK_TIMEOUT = float(os.environ.get("HEALTHCHECK_TIMEOUT", "3"))
 HEALTHCHECK_WORKERS = int(os.environ.get("HEALTHCHECK_WORKERS", "150"))
+
+# -------------------- PROXY-GET ЧЕРЕЗ XRAY --------------------
+PROXY_GET_TIMEOUT = float(os.environ.get("PROXY_GET_TIMEOUT", "10"))
+PROXY_GET_WORKERS = int(os.environ.get("PROXY_GET_WORKERS", "24"))
+PROXY_TEST_URL = os.environ.get("PROXY_TEST_URL", "http://www.gstatic.com/generate_204")
+XRAY_AUTOINSTALL = os.environ.get("XRAY_AUTOINSTALL", "1") != "0"
+XRAY_PATH = os.environ.get(
+    "XRAY_PATH",
+    os.path.join(SOURCE_ROOT, "bin", "xray.exe" if os.name == "nt" else "xray"),
+)
