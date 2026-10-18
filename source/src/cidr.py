@@ -90,3 +90,46 @@ def host_in_whitelist(host: str | None, networks: list) -> bool:
     except ValueError:
         return False
     return ip_in_whitelist(host, networks)
+
+
+def build_cidr_index(networks: list) -> dict[int, dict[int, set[int]]]:
+    """Строит быстрый индекс CIDR для поиска за O(число prefixlen) вместо O(всех сетей).
+    Возвращает {version: {prefixlen: set(network_address_as_int)}}."""
+    index: dict[int, dict[int, set[int]]] = {4: {}, 6: {}}
+    for net in networks:
+        index[net.version].setdefault(net.prefixlen, set()).add(int(net.network_address))
+    return index
+
+
+def ip_in_index(ip: str | None, index: dict[int, dict[int, set[int]]]) -> bool:
+    """Быстрая проверка IP по индексу из build_cidr_index."""
+    if not ip or not index:
+        return False
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    version = addr.version
+    addr_int = int(addr)
+    by_len = index.get(version)
+    if not by_len:
+        return False
+    max_bits = 32 if version == 4 else 128
+    for prefixlen, nets in by_len.items():
+        if prefixlen == 0:
+            return True
+        mask = (((1 << prefixlen) - 1) << (max_bits - prefixlen))
+        if (addr_int & mask) in nets:
+            return True
+    return False
+
+
+def host_in_index(host: str | None, index: dict[int, dict[int, set[int]]]) -> bool:
+    """Хост — IP-литерал? Тогда проверка по быстрому индексу, иначе False."""
+    if not host or not index:
+        return False
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return ip_in_index(host, index)

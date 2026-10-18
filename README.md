@@ -18,6 +18,7 @@
 - [🚀 Быстрый старт](#-быстрый-старт)
 - [📊 Статус конфигов](#-статус-конфигов)
 - [🔓 Файл №30 — обход SNI/CIDR белых списков](#-файл-30--обход-snicidr-белых-списков)
+- [🖤 Файл №31 — чёрный список (вне белых списков)](#-файл-31--чёрный-список-вне-белых-списков)
 - [⚙️ Как это работает](#️-как-это-работает)
 - [🗂 Структура репозитория](#-структура-репозитория)
 - [🔧 Локальный запуск генератора](#-локальный-запуск-генератора)
@@ -76,6 +77,7 @@
 | 28 | [`28.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/28.txt) | [FLAT447/v2ray-lists](https://raw.githubusercontent.com/FLAT447/v2ray-lists/refs/heads/main/BLACK_FULL.txt) | 76 |
 | 29 | [`29.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/29.txt) | [aviamastersgh/vpn-free-russia](https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/refs/heads/main/all_configs.txt) | 9 137 |
 | 30 | [`30.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt) | **Спецфайл: обход SNI/CIDR белых списков** (источники 1–29 + `30_urls.json` + `storage.json`, healthcheck) | 1 094 |
+| 31 | [`31.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt) | **Чёрный список: всё вне белых списков** (источники 1–29 + `storage_black.json`, healthcheck) | ~86 000 |
 
 > Количество конфигов указано на **13.10.2026** и обновляется при каждом цикле сборки.
 
@@ -108,21 +110,36 @@
 
 ---
 
+## 🖤 Файл №31 — чёрный список (вне белых списков)
+
+**[31.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)** — зеркальная противоположность `30.txt`: сюда попадает **всё, что НЕ проходит белые списки** (для обычного не-белого интернета, где белые списки не нужны):
+
+- кандидаты собираются из файлов **1–29** и личных конфигов **`storage_black.json`**;
+- каждый конфиг проверяется **против** белых списков SNI/CIDR — все белые отбрасываются, остаются только «чёрные»;
+- конфиги из `storage_black.json` тоже проходят эту проверку, чтобы в файл гарантированно попадали именно чёрные;
+- структурная валидация (`&amp;` → `&`, отсев битых URI) и дедупликация;
+- **healthcheck живости**: сначала TCP/TLS, затем реальный GET через сам прокси (гибридный режим).
+
+> Используйте **31.txt**, если `30.txt` (белые списки) вам не нужен или мешает — это просто «всё рабочее вне белых списков».
+
+---
+
 ## ⚙️ Как это работает
 1. **GitHub Actions** (`.github/workflows/auto_update.yml`) запускает сборку **по расписанию каждые ~30 минут** (`:07` и `:37` каждого часа UTC), плюс внешний триггер с сервера дёргает workflow в `:25` и `:55`. Есть и ручной запуск (`manual_update.yml`).
 2. Скрипт скачивает конфиги из **29 публичных источников** (`urls.json`) параллельно, используя ETag/If-Modified-Since (повторные скачивания без изменений не тратят трафик).
 3. Каждый конфиг фильтруется: декодируется Base64, проверяется наличие протоколов (`vmess://`, `vless://`, `trojan://`, `ss://`, `hysteria2://`, `tuic://` и др.), удаляются небезопасные конфиги (`allowInsecure=1`), дедупликация.
-4. **Файл №30** формируется отдельно: сбор кандидатов из 1–29 + `30_urls.json` → фильтр по белым спискам CIDR/SNI → структурная валидация → healthcheck → слияние с `storage.json`.
-5. Генерируются **QR-коды** (`qr-codes/1.png` … `30.png`) — кодируют URL подписки.
-6. Все изменения коммитятся и пушатся в репозиторий — ссылки в README всегда актуальны.
+4. **Файл №30** формируется отдельно: сбор кандидатов из 1–29 + `30_urls.json` → фильтр по белым спискам CIDR/SNI → структурная валидация → healthcheck (TCP + GET через прокси) → слияние с `storage.json`.
+5. **Файл №31** формируется как зеркало №30: сбор кандидатов из 1–29 + `storage_black.json` → отсев всего, что проходит белые списки (остаются только «чёрные») → валидация → healthcheck (TCP + GET через прокси).
+6. Генерируются **QR-коды** (`qr-codes/1.png` … `31.png`) — кодируют URL подписки.
+7. Все изменения коммитятся и пушатся в репозиторий — ссылки в README всегда актуальны.
 
 ## 🗂 Структура репозитория
 ```text
 .github/workflows/   — CI/CD GitHub Actions
  ├─ auto_update.yml     — авто-обновление каждые ~30 мин по расписанию (+ workflow_dispatch)
  └─ manual_update.yml   — ручной запуск сборки
-githubmirror/        — сгенерированные .txt подписки (30 файлов)
-qr-codes/            — QR-коды подписок для импорта (30 PNG)
+githubmirror/        — сгенерированные .txt подписки (31 файл)
+qr-codes/            — QR-коды подписок для импорта (31 PNG)
 source/              — исходный код и конфигурации генератора
  ├─ main.py             — основной скрипт генерации
  ├─ requirements.txt    — зависимости Python
@@ -130,6 +147,7 @@ source/              — исходный код и конфигурации г�
  │   ├─ urls.json           — 29 публичных источников (файлы 1–29)
  │   ├─ 30_urls.json        — источники белых списков для спецфайла №30
  │   ├─ storage.json        — личные проверенные конфиги (сливаются в 30.txt)
+ │   ├─ storage_black.json  — личные конфиги для чёрного списка (сливаются в 31.txt)
  │   ├─ cidrwhitelist.txt   — белый список CIDR (обход блокировок)
  │   └─ sni_domains.json    — белый список SNI-доменов
  └─ src/
@@ -172,7 +190,7 @@ python main.py                   # конфиги появятся в ../githubm
 
 > Рекомендованные списки: **[1](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/1.txt)**, **[6](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/6.txt)**, **[22](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/22.txt)**, **[23](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/23.txt)**, **[24](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/24.txt)** и **[25](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/25.txt)**.
 
-> Обход SNI/CIDR белых списков: **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)**.
+> Обход SNI/CIDR белых списков: **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)**. Чёрный список (вне белых списков): **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**.
 
  1) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/1.txt`
  2) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/2.txt`
@@ -204,6 +222,7 @@ python main.py                   # конфиги появятся в ../githubm
  28) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/28.txt`
  29) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/29.txt`
  30) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt`
+ 31) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt`
 
 > 🔗 [Ссылка на QR-коды вечно актуальных конфигов](https://github.com/pie-with-jam/PulseProxy/tree/main/qr-codes)
 
@@ -211,7 +230,7 @@ python main.py                   # конфиги появятся в ../githubm
 
 # 📷 QR-коды
 
-QR-коды всех подписок лежат в папке [`qr-codes/`](https://github.com/pie-with-jam/PulseProxy/tree/main/qr-codes) — `1.png` … `30.png`. QR кодирует **ссылку на подписку**, поэтому подходит для импорта в мобильные клиенты и на Android TV (куда неудобно вставлять ссылку текстом).
+QR-коды всех подписок лежат в папке [`qr-codes/`](https://github.com/pie-with-jam/PulseProxy/tree/main/qr-codes) — `1.png` … `31.png`. QR кодирует **ссылку на подписку**, поэтому подходит для импорта в мобильные клиенты и на Android TV (куда неудобно вставлять ссылку текстом).
 
 ---
 

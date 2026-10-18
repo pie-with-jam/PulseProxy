@@ -1,6 +1,6 @@
 import os
 import io
-from src.config import GITHUBMIRROR_DIR, QRCODES_DIR, SPECIAL_FILE_INDEX, build_raw_file_url
+from src.config import GITHUBMIRROR_DIR, QRCODES_DIR, BLACK_FILE_INDEX, build_raw_file_url
 from src.logger import log
 
 # -------------------- QR-КОДЫ ПОДПИСОК --------------------
@@ -23,11 +23,11 @@ def _make_qr_png(url: str) -> bytes:
 
 
 def generate_qr_codes() -> list[int]:
-    """Генерирует qr-codes/N.png для всех файлов подписок 1..SPECIAL_FILE_INDEX.
+    """Генерирует qr-codes/N.png для всех файлов подписок 1..BLACK_FILE_INDEX.
     Возвращает список индексов, для которых PNG изменился."""
     os.makedirs(QRCODES_DIR, exist_ok=True)
     changed: list[int] = []
-    for file_index in range(1, SPECIAL_FILE_INDEX + 1):
+    for file_index in range(1, BLACK_FILE_INDEX + 1):
         txt_path = os.path.join(GITHUBMIRROR_DIR, f"{file_index}.txt")
         if not os.path.exists(txt_path):
             log(f"ℹ️ QR: пропуск {file_index}.png — файла подписки ещё нет")
@@ -54,5 +54,5 @@ def generate_qr_codes() -> list[int]:
     if changed:
         log(f"🔳 Обновлены QR-коды: {', '.join(f'{i}.png' for i in changed)}")
     else:
-        log(f"🔳 QR-коды 1..{SPECIAL_FILE_INDEX} без изменений")
+        log(f"🔳 QR-коды 1..{BLACK_FILE_INDEX} без изменений")
     return changed

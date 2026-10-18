@@ -14,6 +14,10 @@ from src.config import (
     EXTRA_URL_TIMEOUT,
     EXTRA_URL_MAX_ATTEMPTS,
     OWN_CONFIGS,
+    BLACK_CONFIGS,
+    BLACK_FILE_NAME,
+    BLACK_HEALTHCHECK_WORKERS,
+    BLACK_PROXY_GET_WORKERS,
     SOURCE_COUNT,
     SPECIAL_FILE_NAME,
     HEALTHCHECK_ENABLED,
@@ -26,7 +30,7 @@ from src.config import (
 from src.logger import log
 from src.network import fetch_data, NotModified, _format_fetch_error
 from src.parser import filter_insecure_configs
-from src.cidr import refresh_cidr_whitelist, host_in_whitelist
+from src.cidr import refresh_cidr_whitelist, load_cidr_whitelist, build_cidr_index, host_in_index
 from src.healthcheck import extract_endpoint, probe, ProbeResult, _is_ip as _is_ip_literal
 from src.validator import validate_configs
 
@@ -156,15 +160,105 @@ def _sni_in_whitelist(sni: str | None, domains: set[str]) -> bool:
     return False
 
 
+def _whitelisted_static(
+    line: str, sni_domains: set[str], cidr_index
+) -> bool:
+    """Конфиг попадает под белые списки: реальный SNI — белый домен ИЛИ IP в CIDR."""
+    ep = extract_endpoint(line)
+    if not ep:
+        return False
+    # Реальный SNI (или host, если SNI не задан) — белый домен
+    effective_sni = ep.sni or (ep.host if not _is_ip_literal(ep.host) else None)
+    if effective_sni and _sni_in_whitelist(effective_sni, sni_domains):
+        return True
+    # IP-хост в русских мобильных подсетях (CIDR)
+    return bool(host_in_index(ep.host, cidr_index))
+
+
+def _run_stage(lines: list[str], check, workers: int, stage_label: str) -> tuple[list[str], dict[str, int]]:
+    """Прогоняет check по lines. Возвращает (живые, {reason: count})."""
+    alive: list[str] = []
+    reasons: dict[str, int] = {}
+
+    def _one(line: str) -> tuple[str, object]:
+        try:
+            return line, check(line)
+        except Exception as e:
+            from src.healthcheck import ProbeResult as _PR
+            return line, _PR(False, None, f"ошибка {stage_label}: {type(e).__name__}")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
+        for line, result in executor.map(_one, lines):
+            if result is None or not result.alive:
+                reason = result.reason if result is not None else f"{stage_label}: нет вердикта"
+                reasons[reason] = reasons.get(reason, 0) + 1
+                continue
+            alive.append(line)
+    return alive, reasons
+
+
+def _hybrid_healthcheck(
+    to_probe: list[str],
+    file_label: str,
+    tcp_workers: int,
+    proxy_workers: int,
+) -> tuple[list[str], int, dict[str, int]]:
+    """Стадия A (TCP/TLS) + стадия B (реальный GET через прокси).
+    Возвращает (живые, всего мёртвых, {reason: count})."""
+    alive = to_probe
+    dropped_dead = 0
+    drop_reasons: dict[str, int] = {}
+
+    def _merge(reasons: dict[str, int]):
+        nonlocal dropped_dead
+        dropped_dead += sum(reasons.values())
+        for reason, count in reasons.items():
+            drop_reasons[reason] = drop_reasons.get(reason, 0) + count
+
+    # Стадия A — быстрый TCP/TLS (кроме режима только-proxy).
+    if HEALTHCHECK_MODE in ("hybrid", "tcp"):
+        alive, reasons = _run_stage(
+            alive, lambda line: probe(line, HEALTHCHECK_TIMEOUT), tcp_workers, "TCP"
+        )
+        _merge(reasons)
+        log(
+            f"🩺 Healthcheck TCP ({file_label}): живых {len(alive)} "
+            f"из {len(to_probe)}"
+        )
+    else:
+        log(f"🩺 Healthcheck TCP пропущен (режим {HEALTHCHECK_MODE})")
+
+    # Стадия B — реальный GET через сам прокси (кроме режима только-tcp).
+    if HEALTHCHECK_MODE in ("hybrid", "proxy") and alive:
+        from src.proxy_probe import ensure_xray, proxy_get
+
+        if ensure_xray():
+            alive_b, reasons = _run_stage(
+                alive, lambda line: proxy_get(line, PROXY_GET_TIMEOUT), proxy_workers, "proxy-GET"
+            )
+            _merge(reasons)
+            log(
+                f"🩺 Healthcheck proxy-GET ({file_label}): живых "
+                f"{len(alive_b)} из {len(alive)} (после TCP: {len(alive)})"
+            )
+            alive = alive_b
+        else:
+            log(
+                f"⚠️ proxy-GET пропущен (xray недоступен) — остались "
+                f"результаты TCP: {len(alive)}"
+            )
+
+    return alive, dropped_dead, drop_reasons
+
+
 def _collect_source_lines() -> list[str]:
-    """Читает готовые файлы 1..N (параллельно)."""
+    """Читает готовые файлы 1..N (параллельно, в порядке номеров)."""
     lines: list[str] = []
     max_workers = min(16, (os.cpu_count() or 1) + 4)
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        for result in concurrent.futures.as_completed(
-            [executor.submit(_read_source_file, i) for i in range(1, SOURCE_COUNT + 1)]
-        ):
-            lines.extend(result.result())
+        futures = [executor.submit(_read_source_file, i) for i in range(1, SOURCE_COUNT + 1)]
+        for future in futures:
+            lines.extend(future.result())
     return lines
 
 
@@ -207,7 +301,7 @@ def create_filtered_configs() -> str:
     if sni_domains is None:
         return special_path
 
-    cidr_networks = refresh_cidr_whitelist()
+    cidr_index = build_cidr_index(refresh_cidr_whitelist())
 
     # ---- 1. Сбор кандидатов ----
     all_lines = _collect_source_lines()
@@ -271,21 +365,10 @@ def create_filtered_configs() -> str:
             log(f"   ├─ {reason}: {count}")
 
     # ---- 3. Белый список (реальный SNI / CIDR IP) до healthcheck ----
-    def _whitelisted_static(line: str) -> bool:
-        ep = extract_endpoint(line)
-        if not ep:
-            return False
-        # Реальный SNI (или host, если SNI не задан) — белый домен
-        effective_sni = ep.sni or (ep.host if not _is_ip_literal(ep.host) else None)
-        if effective_sni and _sni_in_whitelist(effective_sni, sni_domains):
-            return True
-        # IP-хост в русских мобильных подсетях (CIDR)
-        return bool(host_in_whitelist(ep.host, cidr_networks))
-
     dropped_not_whitelisted = 0
     to_probe: list[str] = []
     for line in candidates:
-        if line in own_set or _whitelisted_static(line):
+        if line in own_set or _whitelisted_static(line, sni_domains, cidr_index):
             to_probe.append(line)
         else:
             dropped_not_whitelisted += 1
@@ -297,77 +380,12 @@ def create_filtered_configs() -> str:
 
     # ---- 4. Healthcheck только кандидатов из белого списка ----
     dropped_dead = 0
-    drop_reasons: dict[str, int] = {}
     unique_configs: list[str] = []
 
-    def _run_stage(
-        lines: list[str],
-        check,
-        workers: int,
-        stage_label: str,
-    ) -> list[str]:
-        """Прогоняет check по lines; возвращает живых. Мёртвые копятся в drop_reasons."""
-        nonlocal dropped_dead
-        alive: list[str] = []
-
-        def _one(line: str) -> tuple[str, object]:
-            try:
-                return line, check(line)
-            except Exception as e:
-                from src.healthcheck import ProbeResult as _PR
-                return line, _PR(False, None, f"ошибка {stage_label}: {type(e).__name__}")
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, workers)) as executor:
-            for line, result in executor.map(_one, lines):
-                if result is None or not result.alive:
-                    dropped_dead += 1
-                    reason = result.reason if result is not None else f"{stage_label}: нет вердикта"
-                    drop_reasons[reason] = drop_reasons.get(reason, 0) + 1
-                    continue
-                alive.append(line)
-        return alive
-
     if HEALTHCHECK_ENABLED and to_probe:
-        alive = to_probe
-
-        # Стадия A — быстрый TCP/TLS (кроме режима только-proxy).
-        if HEALTHCHECK_MODE in ("hybrid", "tcp"):
-            alive = _run_stage(
-                alive,
-                lambda line: probe(line, HEALTHCHECK_TIMEOUT),
-                HEALTHCHECK_WORKERS,
-                "TCP",
-            )
-            log(
-                f"🩺 Healthcheck TCP ({SPECIAL_FILE_NAME}): живых {len(alive)} "
-                f"из {len(to_probe)}"
-            )
-        else:
-            log(f"🩺 Healthcheck TCP пропущен (режим {HEALTHCHECK_MODE})")
-
-        # Стадия B — реальный GET через сам прокси (кроме режима только-tcp).
-        if HEALTHCHECK_MODE in ("hybrid", "proxy") and alive:
-            from src.proxy_probe import ensure_xray, proxy_get
-
-            if ensure_xray():
-                alive_b = _run_stage(
-                    alive,
-                    lambda line: proxy_get(line, PROXY_GET_TIMEOUT),
-                    PROXY_GET_WORKERS,
-                    "proxy-GET",
-                )
-                log(
-                    f"🩺 Healthcheck proxy-GET ({SPECIAL_FILE_NAME}): живых "
-                    f"{len(alive_b)} из {len(alive)} (после TCP: {len(alive)})"
-                )
-                alive = alive_b
-            else:
-                log(
-                    f"⚠️ proxy-GET пропущен (xray недоступен) — остались "
-                    f"результаты TCP: {len(alive)}"
-                )
-
-        unique_configs = alive
+        unique_configs, dropped_dead, drop_reasons = _hybrid_healthcheck(
+            to_probe, SPECIAL_FILE_NAME, HEALTHCHECK_WORKERS, PROXY_GET_WORKERS
+        )
         for reason, count in sorted(drop_reasons.items(), key=lambda x: -x[1]):
             log(f"   ├─ мёртвые ({reason}): {count}")
     elif not HEALTHCHECK_ENABLED:
@@ -414,3 +432,126 @@ def _host_port_key(line: str) -> str | None:
     if m:
         return f"{m.group(1).lower()}:{m.group(2)}"
     return None
+
+
+# -------------------- ФАЙЛ ЧЁРНЫХ СПИСКОВ --------------------
+
+def create_black_configs() -> str:
+    """Создаёт файл чёрных списков: конфиги 1..N + storage_black.json,
+    отфильтрованные ПРОТИВ белого списка (вне белых списков) и healthcheck."""
+    black_path = os.path.join(GITHUBMIRROR_DIR, BLACK_FILE_NAME)
+
+    sni_domains = _load_sni_domains()
+    if sni_domains is None:
+        return black_path
+
+    # refresh_cidr_whitelist уже отработал в create_filtered_configs — грузим локально.
+    cidr_networks = load_cidr_whitelist()
+    if not cidr_networks:
+        cidr_networks = refresh_cidr_whitelist()
+    cidr_index = build_cidr_index(cidr_networks)
+
+    # ---- 1. Сбор кандидатов: файлы 1..N + storage_black ----
+    all_lines = _collect_source_lines()
+    black_own = [str(c).strip() for c in BLACK_CONFIGS if str(c).strip()]
+
+    # ---- 2. Дедупликация (storage_black впереди — лимит кандидатов не должен их резать) ----
+    seen_lines: set[str] = set()
+    seen_hostport: set[str] = set()
+    candidates: list[str] = []
+    own_set: set[str] = set()
+
+    for cfg in black_own:
+        if cfg in own_set:
+            continue
+        own_set.add(cfg)
+        if cfg in seen_lines:
+            continue
+        seen_lines.add(cfg)
+        hp = _host_port_key(cfg)
+        if hp:
+            seen_hostport.add(hp)
+        candidates.append(cfg)
+
+    for cfg in all_lines:
+        if not cfg or cfg in seen_lines:
+            continue
+        seen_lines.add(cfg)
+        hp = _host_port_key(cfg)
+        if hp and hp in seen_hostport:
+            continue
+        if hp:
+            seen_hostport.add(hp)
+        candidates.append(cfg)
+
+    if not candidates:
+        log(f"⚠️ Нет кандидатов для {BLACK_FILE_NAME}")
+        save_to_local_file(black_path, "")
+        return black_path
+
+    # ---- 2.5 Валидация структуры ----
+    total_amp = sum(1 for c in candidates if "&amp;" in c)
+    if total_amp:
+        candidates = [c.replace("&amp;", "&") if "&amp;" in c else c for c in candidates]
+        log(f"🔧 Починено HTML-экранирование &amp; → &: {total_amp} конфигов")
+    candidates, invalid_reasons = validate_configs(candidates)
+    if invalid_reasons:
+        dropped_invalid = sum(invalid_reasons.values())
+        log(f"🗑️ Отсеяно битых конфигов ({BLACK_FILE_NAME}): {dropped_invalid}")
+        for reason, count in sorted(invalid_reasons.items(), key=lambda x: -x[1]):
+            log(f"   ├─ {reason}: {count}")
+
+    # Финальный дедуп: &amp;-чинка могла склеить ранее разные конфиги.
+    deduped: list[str] = []
+    seen_final: set[str] = set()
+    for cfg in candidates:
+        if cfg in seen_final:
+            continue
+        seen_final.add(cfg)
+        deduped.append(cfg)
+    candidates = deduped
+
+    # ---- 3. Инверсия белого списка: отбрасываем белые, оставляем чёрные.
+    # storage_black тоже проходит эту проверку — «точно из чёрных». ----
+    dropped_whitelisted = 0
+    black_candidates: list[str] = []
+    for line in candidates:
+        if _whitelisted_static(line, sni_domains, cidr_index):
+            dropped_whitelisted += 1
+        else:
+            black_candidates.append(line)
+
+    log(
+        f"🔎 Чёрный список ({BLACK_FILE_NAME}): {len(black_candidates)} кандидатов "
+        f"из {len(candidates)} (белых отброшено: {dropped_whitelisted})"
+    )
+
+    # ---- 4. Healthcheck (TCP → proxy-GET) ----
+    to_probe = black_candidates
+    dropped_dead = 0
+    unique_configs: list[str] = []
+
+    if HEALTHCHECK_ENABLED and to_probe:
+        unique_configs, dropped_dead, drop_reasons = _hybrid_healthcheck(
+            to_probe, BLACK_FILE_NAME, BLACK_HEALTHCHECK_WORKERS, BLACK_PROXY_GET_WORKERS
+        )
+        for reason, count in sorted(drop_reasons.items(), key=lambda x: -x[1]):
+            log(f"   ├─ мёртвые ({reason}): {count}")
+    elif not HEALTHCHECK_ENABLED:
+        unique_configs = to_probe
+        log(f"🏥 Healthcheck отключён — в файле {len(unique_configs)} конфигов")
+    else:
+        log(f"⚠️ Нет кандидатов после чёрного списка для {BLACK_FILE_NAME}")
+
+    try:
+        with open(black_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(unique_configs))
+        log(
+            f"📁 Создан файл {BLACK_FILE_NAME}: {len(unique_configs)} конфигов "
+            f"(мёртвых: {dropped_dead}, белых отброшено: {dropped_whitelisted}, "
+            f"своих: {len(own_set)})"
+        )
+    except Exception as e:
+        log(f"⚠️ Ошибка при сохранении {BLACK_FILE_NAME}: {e}")
+
+    return black_path
