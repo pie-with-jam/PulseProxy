@@ -2,9 +2,9 @@ import argparse
 import concurrent.futures
 import os
 import sys
-from src.config import URLS, DEFAULT_MAX_WORKERS, SPECIAL_FILE_INDEX, BLACK_FILE_INDEX
+from src.config import URLS, DEFAULT_MAX_WORKERS, SPECIAL_FILE_INDEX
 from src.logger import updated_files, _UPDATED_FILES_LOCK, LOGS_BY_FILE
-from src.file_manager import download_and_save, create_filtered_configs, create_black_configs
+from src.file_manager import download_and_save, create_filtered_configs
 from src.qr_generator import generate_qr_codes
 from src.release_fetcher import fetch_latest_release_links, fetch_vc_runtime_link
 from src.readme_updater import update_readme_download_links, update_readme_table
@@ -37,13 +37,7 @@ def main(dry_run: bool = False):
         with _UPDATED_FILES_LOCK:
             updated_files.add(SPECIAL_FILE_INDEX)
 
-    # Файл чёрных списков (вне белых списков, 31.txt)
-    black_path = create_black_configs()
-    if os.path.exists(black_path):
-        with _UPDATED_FILES_LOCK:
-            updated_files.add(BLACK_FILE_INDEX)
-
-    # QR-коды для всех подписок 1..31 (ссылка на свежий файл)
+    # QR-коды для всех подписок 1..30 (ссылка на свежий файл)
     generate_qr_codes()
 
     # Независимые сетевые запросы выполняем параллельно, чтобы не ждать

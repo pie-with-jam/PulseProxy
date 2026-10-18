@@ -1,6 +1,6 @@
 import os
 import re
-from src.config import README_PATH, URLS, build_raw_file_url, SOURCE_COUNT, SPECIAL_FILE_INDEX, BLACK_FILE_INDEX
+from src.config import README_PATH, URLS, build_raw_file_url, SOURCE_COUNT
 from src.logger import log, offset, updated_files
 from src.file_manager import extract_source_name
 from src.github_api import get_repo_stats, build_repo_stats_table
@@ -107,7 +107,7 @@ def update_readme_table(repo_stats: dict | None = None):
     table_header = "| № | Файл | Источник | Время | Дата |\n|--|--|--|--|--|"
     table_rows: list[str] = []
 
-    all_urls_with_special = URLS + ["", ""]  # спец-файл (белые списки) и чёрный список без внешнего URL
+    all_urls_with_special = URLS + [""]  # спец-файл (белые списки) без внешнего URL
     for i, url in enumerate(all_urls_with_special, start=1):
         filename = f"{i}.txt"
         raw_file_url = build_raw_file_url(i)
@@ -115,11 +115,8 @@ def update_readme_table(repo_stats: dict | None = None):
         if i <= SOURCE_COUNT:
             source_name = extract_source_name(url)
             source_column = f"[{source_name}]({url})"
-        elif i == SPECIAL_FILE_INDEX:
-            source_name = "Обход SNI/CIDR белых списков"
-            source_column = f"[{source_name}]({raw_file_url})"
         else:
-            source_name = "Вне белых списков (чёрный список)"
+            source_name = "Обход SNI/CIDR белых списков"
             source_column = f"[{source_name}]({raw_file_url})"
 
         if i in updated_files:

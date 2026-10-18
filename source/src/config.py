@@ -19,7 +19,6 @@ SNI_DOMAINS_PATH = os.path.join(SOURCE_ROOT, "config", "sni_domains.json")
 URLS_PATH = os.path.join(SOURCE_ROOT, "config", "urls.json")
 URLS_30_PATH = os.path.join(SOURCE_ROOT, "config", "30_urls.json")
 STORAGE_PATH = os.path.join(SOURCE_ROOT, "config", "storage.json")
-STORAGE_BLACK_PATH = os.path.join(SOURCE_ROOT, "config", "storage_black.json")
 CIDR_WHITELIST_PATH = os.path.join(SOURCE_ROOT, "config", "cidrwhitelist.txt")
 QRCODES_DIR = os.path.join(GIT_ROOT, "qr-codes")
 
@@ -40,16 +39,11 @@ URLS = _load_json_list(URLS_PATH, [])
 # Дополнительные источники для спецфайла (белые списки) и свои конфиги из storage.json.
 EXTRA_URLS_FOR_SPECIAL = _load_json_list(URLS_30_PATH, [])
 OWN_CONFIGS = _load_json_list(STORAGE_PATH, [])
-# Чёрный список: конфиги ВНЕ белых списков (файлы 1..N + storage_black.json).
-BLACK_CONFIGS = _load_json_list(STORAGE_BLACK_PATH, [])
 
-# Количество публичных источников (1..SOURCE_COUNT), номер спецфайла (SOURCE_COUNT + 1)
-# и номер файла чёрных списков (SOURCE_COUNT + 2).
+# Количество публичных источников (1..SOURCE_COUNT) и номер спецфайла (SOURCE_COUNT + 1).
 SOURCE_COUNT = len(URLS)
 SPECIAL_FILE_INDEX = SOURCE_COUNT + 1
 SPECIAL_FILE_NAME = f"{SPECIAL_FILE_INDEX}.txt"
-BLACK_FILE_INDEX = SOURCE_COUNT + 2
-BLACK_FILE_NAME = f"{BLACK_FILE_INDEX}.txt"
 
 # Создаём папку зеркала, если она не существует
 os.makedirs(GITHUBMIRROR_DIR, exist_ok=True)
@@ -112,9 +106,3 @@ XRAY_PATH = os.environ.get(
     "XRAY_PATH",
     os.path.join(SOURCE_ROOT, "bin", "xray.exe" if os.name == "nt" else "xray"),
 )
-
-# -------------------- HEALTHCHECK ФАЙЛА ЧЁРНЫХ СПИСКОВ (31.txt) --------------------
-# Режим/таймауты наследуют от основного healthcheck (HEALTHCHECK_MODE и т.д.),
-# но воркеры отдельные: чёрных конфигов на порядок больше.
-BLACK_HEALTHCHECK_WORKERS = int(os.environ.get("BLACK_HEALTHCHECK_WORKERS", "200"))
-BLACK_PROXY_GET_WORKERS = int(os.environ.get("BLACK_PROXY_GET_WORKERS", "36"))
