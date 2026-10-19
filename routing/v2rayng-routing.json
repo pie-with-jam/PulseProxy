@@ -1,0 +1,105 @@
+[
+  {
+    "enabled": true,
+    "locked": false,
+    "ip": ["geoip:private"],
+    "domain": ["geosite:private"],
+    "outboundTag": "direct",
+    "remarks": "Локальная сеть (LAN) — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "ip": ["geoip:ir"],
+    "domain": ["geosite:ir"],
+    "outboundTag": "direct",
+    "remarks": "Иран — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "ip": ["geoip:cn"],
+    "domain": ["geosite:cn"],
+    "outboundTag": "direct",
+    "remarks": "Китай — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "ip": [
+      "223.5.5.5", "223.6.6.6", "1.2.4.8", "1.12.12.12", "120.53.53.53",
+      "114.114.114.114", "114.114.115.115", "114.114.114.119", "114.114.115.119",
+      "114.114.114.110", "114.114.115.110", "119.29.29.29", "180.76.76.76",
+      "180.184.1.1", "180.184.2.2", "101.226.4.6", "218.30.118.6", "123.125.81.6",
+      "140.207.198.6", "52.80.66.66", "117.50.22.22", "117.50.10.10", "52.80.52.52",
+      "117.50.60.30", "52.80.60.30",
+      "2400:3200::1", "2400:3200:baba::1", "2402:4e00::", "2402:4e00:1::",
+      "2400:da00::6666", "2400:7fc0:849e:200::4", "2404:c2c0:85d8:901::4",
+      "2400:7fc0:849e:200::8", "2404:c2c0:85d8:901::8"
+    ],
+    "outboundTag": "direct",
+    "remarks": "Китайские публичные DNS — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "domain": [
+      "domain:alidns.com", "domain:doh.pub", "domain:dot.pub",
+      "domain:360.cn", "domain:onedns.net"
+    ],
+    "outboundTag": "direct",
+    "remarks": "Китайские публичные DNS (домены) — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "ip": ["geoip:ru"],
+    "domain": ["geosite:ru"],
+    "outboundTag": "direct",
+    "remarks": "Россия — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "ip": [
+      "77.88.8.8", "77.88.8.1", "77.88.8.88", "77.88.8.2",
+      "195.46.39.39", "195.46.39.40", "213.180.204.204"
+    ],
+    "outboundTag": "direct",
+    "remarks": "Российские DNS (Yandex/SafeDNS) — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "domain": [
+      "domain:ipify.org", "domain:2ip.io", "domain:2ip.ru", "domain:icanhazip.com",
+      "domain:ifconfig.me", "domain:ipinfo.io", "domain:checkip.amazonaws.com",
+      "domain:myip.ipip.net", "domain:whoer.net", "domain:ipleak.net",
+      "domain:dnsleaktest.com", "domain:browserleaks.com"
+    ],
+    "outboundTag": "direct",
+    "remarks": "Сервисы определения IP/утечек DNS — напрямую (чтобы видеть реальный IP)"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "domain": [
+      "domain:f-droid.org", "domain:fdroid.org", "domain:guardianproject.info",
+      "domain:hispace.huawei.com", "domain:appcloud.huawei.com",
+      "domain:appmarket.huawei.com", "domain:hicloud.com", "domain:vmall.com",
+      "domain:app.mi.com", "domain:global.market.xiaomi.com", "domain:download.miui.com",
+      "domain:file.miui.com", "domain:market.xiaomi.com", "domain:galaxystore.samsung.com",
+      "domain:appstore.amazon.com"
+    ],
+    "outboundTag": "direct",
+    "remarks": "Магазины приложений (F-Droid, Huawei, Xiaomi, Samsung, Amazon) — напрямую"
+  },
+  {
+    "enabled": true,
+    "locked": false,
+    "network": "udp",
+    "port": "443",
+    "outboundTag": "block",
+    "remarks": "Блок QUIC (UDP 443) — форс TCP через прокси (обход DPI)"
+  }
+]
