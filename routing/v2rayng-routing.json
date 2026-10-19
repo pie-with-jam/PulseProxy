@@ -13,7 +13,7 @@
     "ip": ["geoip:ir"],
     "domain": ["geosite:ir"],
     "outboundTag": "direct",
-    "remarks": "Иран — напрямую"
+    "remarks": "ایران — مستقیم"
   },
   {
     "enabled": true,
@@ -21,7 +21,7 @@
     "ip": ["geoip:cn"],
     "domain": ["geosite:cn"],
     "outboundTag": "direct",
-    "remarks": "Китай — напрямую"
+    "remarks": "中国 — 直连"
   },
   {
     "enabled": true,
@@ -38,7 +38,7 @@
       "2400:7fc0:849e:200::8", "2404:c2c0:85d8:901::8"
     ],
     "outboundTag": "direct",
-    "remarks": "Китайские публичные DNS — напрямую"
+    "remarks": "中国公共 DNS — 直连"
   },
   {
     "enabled": true,
@@ -48,7 +48,7 @@
       "domain:360.cn", "domain:onedns.net"
     ],
     "outboundTag": "direct",
-    "remarks": "Китайские публичные DNS (домены) — напрямую"
+    "remarks": "中国公共 DNS 域名 — 直连"
   },
   {
     "enabled": true,
@@ -78,7 +78,7 @@
       "domain:dnsleaktest.com", "domain:browserleaks.com"
     ],
     "outboundTag": "direct",
-    "remarks": "Сервисы определения IP/утечек DNS — напрямую (чтобы видеть реальный IP)"
+    "remarks": "Сервисы определения IP/утечек DNS — напрямую (видеть реальный IP)"
   },
   {
     "enabled": true,
