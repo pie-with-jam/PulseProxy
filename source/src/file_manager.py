@@ -22,11 +22,25 @@ from src.config import (
     HEALTHCHECK_WORKERS,
     PROXY_GET_TIMEOUT,
     PROXY_GET_WORKERS,
+    CHINA_FILE_INDEX,
+    CHINA_FILE_NAME,
+    IRAN_FILE_INDEX,
+    IRAN_FILE_NAME,
+    CN_CIDR_PATH,
+    IR_CIDR_PATH,
+    COUNTRY_PROBE_LIMIT,
 )
 from src.logger import log
 from src.network import fetch_data, NotModified, _format_fetch_error
 from src.parser import filter_insecure_configs
-from src.cidr import refresh_cidr_whitelist, host_in_whitelist
+from src.cidr import (
+    refresh_cidr_whitelist,
+    host_in_whitelist,
+    parse_cidr_lines,
+    build_network_index,
+    ip_in_index,
+    host_in_index,
+)
 from src.healthcheck import extract_endpoint, probe, ProbeResult, _is_ip as _is_ip_literal
 from src.validator import validate_configs
 
@@ -414,3 +428,169 @@ def _host_port_key(line: str) -> str | None:
     if m:
         return f"{m.group(1).lower()}:{m.group(2)}"
     return None
+
+
+# -------------------- СТРАНОВЫЕ ФАЙЛЫ (КИТАЙ / ИРАН) --------------------
+
+def _load_country_index(cidr_path: str, label: str):
+    """Загружает CIDR-список страны и строит быстрый индекс. None при ошибке."""
+    try:
+        with open(cidr_path, "r", encoding="utf-8") as f:
+            networks = parse_cidr_lines(f.read())
+        if not networks:
+            log(f"⚠️ {label}: CIDR-список пуст ({os.path.basename(cidr_path)})")
+            return None
+        index = build_network_index(networks)
+        log(f"📍 {label}: загружено {len(networks)} подсетей ({os.path.basename(cidr_path)})")
+        return index
+    except FileNotFoundError:
+        log(f"⚠️ {label}: не найден {cidr_path} — файл пропущен")
+        return None
+    except Exception as e:
+        log(f"⚠️ {label}: ошибка чтения {cidr_path}: {e}")
+        return None
+
+
+def _collect_country_candidates() -> tuple[list[str], list[str]]:
+    """Кандидаты для страновых файлов: storage.json + готовые файлы 1..N
+    в детерминированном порядке источников. Возвращает (свои, общий пул)."""
+    own_lines = [str(c).strip() for c in OWN_CONFIGS if str(c).strip()]
+    pool: list[str] = []
+    for i in range(1, SOURCE_COUNT + 1):
+        pool.extend(_read_source_file(i))
+    return own_lines, pool
+
+
+def _dedupe_pool(own_lines: list[str], pool: list[str]) -> tuple[list[str], set[str]]:
+    """Дедупликация пула: свои конфиги (список №1) приоритетнее по host:port."""
+    seen_lines: set[str] = set()
+    seen_hostport: set[str] = set()
+    candidates: list[str] = []
+
+    def _add(cfg: str):
+        if not cfg or cfg in seen_lines:
+            return
+        hp = _host_port_key(cfg)
+        if hp and hp in seen_hostport:
+            return
+        seen_lines.add(cfg)
+        if hp:
+            seen_hostport.add(hp)
+        candidates.append(cfg)
+
+    own_set = {c for c in own_lines if c}
+    for cfg in own_lines:
+        _add(cfg)
+    for cfg in pool:
+        _add(cfg)
+    return candidates, own_set
+
+
+def create_country_configs() -> list[str]:
+    """Создаёт страновые файлы для пользователей из Китая (№31) и Ирана (№32).
+
+    Логика: конфиги, чей сервер находится внутри самой страны (по CIDR),
+    бесполезны для обхода её же фильтров — они исключаются. Доменные эндпоинты
+    проверяются по реальному IP соединения (peer_ip) на стадии healthcheck.
+    Живость проверяется с серверов CI (не из КНР/Ирана) — это приближение."""
+    specs = [
+        (CHINA_FILE_INDEX, CHINA_FILE_NAME, CN_CIDR_PATH, "Китай"),
+        (IRAN_FILE_INDEX, IRAN_FILE_NAME, IR_CIDR_PATH, "Иран"),
+    ]
+    written: list[str] = []
+
+    prepared: list[str] | None = None
+    own_set: set[str] = set()
+
+    for file_index, file_name, cidr_path, label in specs:
+        out_path = os.path.join(GITHUBMIRROR_DIR, file_name)
+        index = _load_country_index(cidr_path, label)
+        if index is None:
+            continue
+
+        # Общий пул кандидатов готовится один раз для обоих файлов.
+        if prepared is None:
+            own_lines, pool = _collect_country_candidates()
+            candidates, own_set = _dedupe_pool(own_lines, pool)
+            total_amp = sum(1 for c in candidates if "&amp;" in c)
+            if total_amp:
+                candidates = [c.replace("&amp;", "&") if "&amp;" in c else c for c in candidates]
+                log(f"🔧 Починено HTML-экранирование &amp; → &: {total_amp} конфигов")
+            candidates, invalid_reasons = validate_configs(candidates)
+            if invalid_reasons:
+                dropped_invalid = sum(invalid_reasons.values())
+                log(f"🗑️ Отсеяно битых конфигов: {dropped_invalid}")
+                for reason, count in sorted(invalid_reasons.items(), key=lambda x: -x[1]):
+                    log(f"   ├─ {reason}: {count}")
+            prepared = candidates
+        candidates = prepared
+
+        # ---- 1. Статический отсев: сервер-IP внутри страны ----
+        dropped_in_country = 0
+        fresh: list[str] = []
+        for line in candidates:
+            ep = extract_endpoint(line)
+            if ep and host_in_index(ep.host, index):
+                dropped_in_country += 1
+                continue
+            fresh.append(line)
+
+        # ---- 2. Равномерная выборка под бюджет healthcheck ----
+        probe_list = fresh
+        if COUNTRY_PROBE_LIMIT and len(fresh) > COUNTRY_PROBE_LIMIT:
+            step = len(fresh) / COUNTRY_PROBE_LIMIT
+            probe_list = [fresh[int(i * step)] for i in range(COUNTRY_PROBE_LIMIT)]
+            log(
+                f"🔎 {file_name}: выборка {len(probe_list)} кандидатов "
+                f"из {len(fresh)} (вне страны: {dropped_in_country} отсечено статически)"
+            )
+        else:
+            log(f"🔎 {file_name}: кандидатов {len(fresh)} (отсечено статически: {dropped_in_country})")
+
+        # ---- 3. Healthcheck TCP/TLS + отсев доменов, разрешившихся в страну ----
+        alive: list[str] = []
+        dropped_dead = 0
+        if HEALTHCHECK_ENABLED and probe_list:
+            drop_reasons: dict[str, int] = {}
+
+            def _one(line: str) -> tuple[str, ProbeResult]:
+                try:
+                    return line, probe(line, HEALTHCHECK_TIMEOUT)
+                except Exception as e:
+                    return line, ProbeResult(False, None, f"ошибка TCP: {type(e).__name__}")
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, HEALTHCHECK_WORKERS)) as executor:
+                for line, result in executor.map(_one, probe_list):
+                    if result is None or not result.alive:
+                        dropped_dead += 1
+                        reason = result.reason if result is not None else "нет вердикта"
+                        drop_reasons[reason] = drop_reasons.get(reason, 0) + 1
+                        continue
+                    # Домен мог разрешиться на сервер внутри страны — исключаем.
+                    if result.peer_ip and ip_in_index(result.peer_ip, index):
+                        dropped_in_country += 1
+                        continue
+                    alive.append(line)
+            log(
+                f"🩺 Healthcheck TCP ({file_name}): живых {len(alive)} из {len(probe_list)} "
+                f"(отсечено внутри страны после DNS: {dropped_in_country})"
+            )
+            for reason, count in sorted(drop_reasons.items(), key=lambda x: -x[1]):
+                log(f"   ├─ мёртвые ({reason}): {count}")
+        elif not HEALTHCHECK_ENABLED:
+            alive = probe_list
+            log(f"🏥 Healthcheck отключён — в {file_name} {len(alive)} конфигов")
+
+        try:
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(alive))
+            own_alive = sum(1 for c in alive if c in own_set)
+            log(
+                f"📁 Создан файл {file_name}: {len(alive)} конфигов "
+                f"(внутри страны: {dropped_in_country}, мёртвых: {dropped_dead}, своих: {own_alive})"
+            )
+            written.append(out_path)
+        except Exception as e:
+            log(f"⚠️ Ошибка при сохранении {file_name}: {e}")
+
+    return written

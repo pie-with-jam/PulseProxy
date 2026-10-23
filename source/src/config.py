@@ -20,6 +20,8 @@ URLS_PATH = os.path.join(SOURCE_ROOT, "config", "urls.json")
 URLS_30_PATH = os.path.join(SOURCE_ROOT, "config", "30_urls.json")
 STORAGE_PATH = os.path.join(SOURCE_ROOT, "config", "storage.json")
 CIDR_WHITELIST_PATH = os.path.join(SOURCE_ROOT, "config", "cidrwhitelist.txt")
+CN_CIDR_PATH = os.path.join(SOURCE_ROOT, "config", "cn_cidr.txt")
+IR_CIDR_PATH = os.path.join(SOURCE_ROOT, "config", "ir_cidr.txt")
 QRCODES_DIR = os.path.join(GIT_ROOT, "qr-codes")
 
 # -------------------- ЗАГРУЗКА КОНФИГУРАЦИИ --------------------
@@ -44,6 +46,20 @@ OWN_CONFIGS = _load_json_list(STORAGE_PATH, [])
 SOURCE_COUNT = len(URLS)
 SPECIAL_FILE_INDEX = SOURCE_COUNT + 1
 SPECIAL_FILE_NAME = f"{SPECIAL_FILE_INDEX}.txt"
+
+# Страновые спецфайлы: №31 — без серверов в Китае, №32 — без серверов в Иране.
+CHINA_FILE_INDEX = SPECIAL_FILE_INDEX + 1
+CHINA_FILE_NAME = f"{CHINA_FILE_INDEX}.txt"
+IRAN_FILE_INDEX = SPECIAL_FILE_INDEX + 2
+IRAN_FILE_NAME = f"{IRAN_FILE_INDEX}.txt"
+# Индекс последнего файла подписки (для QR-генератора и ссылок).
+LAST_FILE_INDEX = IRAN_FILE_INDEX
+# Файлы без внешнего URL (собираются из 1..SOURCE_COUNT + storage.json).
+SPECIAL_FILE_SOURCES = {
+    SPECIAL_FILE_INDEX: "Обход SNI/CIDR белых списков",
+    CHINA_FILE_INDEX: "Для Китая (без серверов в CN)",
+    IRAN_FILE_INDEX: "Для Ирана (без серверов в IR)",
+}
 
 # Создаём папку зеркала, если она не существует
 os.makedirs(GITHUBMIRROR_DIR, exist_ok=True)
@@ -80,6 +96,11 @@ CIDR_WHITELIST_URL = os.environ.get(
     "CIDR_WHITELIST_URL",
     "https://raw.githubusercontent.com/hxehex/russia-mobile-internet-whitelist/refs/heads/main/cidrwhitelist.txt",
 )
+
+# Сколько кандидатов максимум проверять на живость в страновых файлах (31/32).
+# Полный пул ~400k+ конфигов целиком healthcheck невозможен — берётся
+# равномерная выборка под бюджет; 0 — без лимита.
+COUNTRY_PROBE_LIMIT = int(os.environ.get("COUNTRY_PROBE_LIMIT", "4000"))
 
 LOCAL_PATHS = [os.path.join(GITHUBMIRROR_DIR, f"{i+1}.txt") for i in range(SOURCE_COUNT)]
 LOCAL_PATHS.append(os.path.join(GITHUBMIRROR_DIR, SPECIAL_FILE_NAME))

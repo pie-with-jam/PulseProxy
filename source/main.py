@@ -2,9 +2,9 @@ import argparse
 import concurrent.futures
 import os
 import sys
-from src.config import URLS, DEFAULT_MAX_WORKERS, SPECIAL_FILE_INDEX
+from src.config import URLS, DEFAULT_MAX_WORKERS, SPECIAL_FILE_INDEX, CHINA_FILE_INDEX, IRAN_FILE_INDEX
 from src.logger import updated_files, _UPDATED_FILES_LOCK, LOGS_BY_FILE
-from src.file_manager import download_and_save, create_filtered_configs
+from src.file_manager import download_and_save, create_filtered_configs, create_country_configs
 from src.qr_generator import generate_qr_codes
 from src.release_fetcher import fetch_latest_release_links, fetch_vc_runtime_link
 from src.readme_updater import update_readme_download_links, update_readme_table
@@ -37,7 +37,18 @@ def main(dry_run: bool = False):
         with _UPDATED_FILES_LOCK:
             updated_files.add(SPECIAL_FILE_INDEX)
 
-    # QR-коды для всех подписок 1..30 (ссылка на свежий файл)
+    # Страновые файлы: №31 (без серверов в Китае), №32 (без серверов в Иране)
+    for path in create_country_configs():
+        if os.path.exists(path):
+            name = os.path.basename(path)
+            try:
+                idx = int(name.split(".")[0])
+            except ValueError:
+                continue
+            with _UPDATED_FILES_LOCK:
+                updated_files.add(idx)
+
+    # QR-коды для всех подписок 1..32 (ссылка на свежий файл)
     generate_qr_codes()
 
     # Независимые сетевые запросы выполняем параллельно, чтобы не ждать

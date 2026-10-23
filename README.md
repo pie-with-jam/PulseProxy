@@ -6,9 +6,13 @@
   <img src="https://img.shields.io/github/stars/pie-with-jam/PulseProxy?style=for-the-badge" alt="Stars">
 </p>
 
+<p align="center">
+  <b>🇷🇺 Русский</b> · <a href="./README.en.md">🇬🇧 English</a> · <a href="./README.zh.md">🇨🇳 中文</a> · <a href="./README.fa.md">🇮🇷 فارسی</a>
+</p>
+
 # 📖 Описание проекта
 
-Автоматически обновляемая коллекция публичных VPN-конфигов (`V2Ray` / `VLESS` / `VMess` / `Trojan` / `Shadowsocks` / `Hysteria2` / `Tuic` / `Reality`) для обхода блокировок, включая конфиги для обхода SNI/CIDR белых списков.
+Автоматически обновляемая коллекция публичных VPN-конфигов (`V2Ray` / `VLESS` / `VMess` / `Trojan` / `Shadowsocks` / `Hysteria2` / `Tuic` / `Reality`) для обхода блокировок, включая конфиги для обхода SNI/CIDR белых списков и страновые списки для Китая и Ирана.
 
 Каждый конфиг — это TXT-подписка, которую можно импортировать практически в любой современный клиент (`v2rayNG`, `Throne`, `v2rayN`, `V2Box`, `Hiddify`, `Karing`, `Streisand` и др.).
 
@@ -18,6 +22,7 @@
 - [🚀 Быстрый старт](#-быстрый-старт)
 - [📊 Статус конфигов](#-статус-конфигов)
 - [🔓 Файл №30 — обход SNI/CIDR белых списков](#-файл-30--обход-snicidr-белых-списков)
+- [🇨🇳🇮🇷 Файлы №31 и №32 — для Китая и Ирана](#-файлы-31-и-32--для-китая-и-ирана)
 - [⚙️ Как это работает](#️-как-это-работает)
 - [🗂 Структура репозитория](#-структура-репозитория)
 - [🔧 Локальный запуск генератора](#-локальный-запуск-генератора)
@@ -38,6 +43,8 @@
 3. Проверьте задержку профилей, выберите сервер с минимальным пингом и подключайтесь.
 
 > 💡 **Для мобильного интернета в РФ** начните с файла **[30.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)** — это отобранный по белым спискам SNI/CIDR список, прошедший проверку живости.
+>
+> 💡 **Для Китая** — файл **[31.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**, **для Ирана** — **[32.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** (без серверов внутри этих стран).
 
 ---
 
@@ -77,6 +84,8 @@
 | 28 | [`28.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/28.txt) | [FLAT447/v2ray-lists](https://raw.githubusercontent.com/FLAT447/v2ray-lists/refs/heads/main/BLACK_FULL.txt) | 76 |
 | 29 | [`29.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/29.txt) | [aviamastersgh/vpn-free-russia](https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/refs/heads/main/all_configs.txt) | 9 137 |
 | 30 | [`30.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt) | **Спецфайл: обход SNI/CIDR белых списков** (источники 1–29 + `30_urls.json` + `storage.json`, healthcheck) | 1 094 |
+| 31 | [`31.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt) | **Для Китая** (без серверов внутри CN по `cn_cidr.txt`, healthcheck) | 977 |
+| 32 | [`32.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt) | **Для Ирана** (без серверов внутри IR по `ir_cidr.txt`, healthcheck) | 945 |
 
 > Количество конфигов указано на **13.10.2026** и обновляется при каждом цикле сборки.
 
@@ -109,21 +118,36 @@
 
 ---
 
+## 🇨🇳🇮🇷 Файлы №31 и №32 — для Китая и Ирана
+
+**[31.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)** и **[32.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** — страновые подписки для пользователей за национальными файрволами (КНР, Иран):
+
+- кандидаты собираются из файлов **1–29** и `storage.json` (дедупликация, структурная валидация);
+- **исключаются серверы внутри страны**: конфиги с IP из `cn_cidr.txt` / `ir_cidr.txt` (8 802 / 1 901 подсетей) отсеиваются статически, а домены проверяются по реальному IP соединения при healthcheck — подключаться к серверу в своей же стране для обхода её же блокировок бессмысленно;
+- проходит **healthcheck** живости (TCP/TLS-хендшейк) с равномерной выборкой до 4 000 кандидатов на файл (полный пул 1–29 слишком большой для проверки целиком; лимит настраивается `COUNTRY_PROBE_LIMIT`).
+
+> ⚠️ **Важно:** живость проверяется **с серверов GitHub Actions, а не из Китая/Ирана** — GFW/иранский фильтр может блокировать часть работающих отовсюду конфигов. Файл — это отфильтрованный кандидат, а не гарантия доступности внутри страны; при недоступности пробуйте следующие серверы списка.
+
+> 💡 Эти файлы также рекомендованы для пользователей из этих стран в разделе маршрутизации v2rayNG ниже.
+
+---
+
 ## ⚙️ Как это работает
 1. **GitHub Actions** (`.github/workflows/auto_update.yml`) запускает сборку **по расписанию каждые ~30 минут** (`:07` и `:37` каждого часа UTC), плюс внешний триггер с сервера дёргает workflow в `:25` и `:55`. Есть и ручной запуск (`manual_update.yml`).
 2. Скрипт скачивает конфиги из **29 публичных источников** (`urls.json`) параллельно, используя ETag/If-Modified-Since (повторные скачивания без изменений не тратят трафик).
 3. Каждый конфиг фильтруется: декодируется Base64, проверяется наличие протоколов (`vmess://`, `vless://`, `trojan://`, `ss://`, `hysteria2://`, `tuic://` и др.), удаляются небезопасные конфиги (`allowInsecure=1`), дедупликация.
 4. **Файл №30** формируется отдельно: сбор кандидатов из 1–29 + `30_urls.json` → фильтр по белым спискам CIDR/SNI → структурная валидация → healthcheck → слияние с `storage.json`.
-5. Генерируются **QR-коды** (`qr-codes/1.png` … `30.png`) — кодируют URL подписки.
-6. Все изменения коммитятся и пушатся в репозиторий — ссылки в README всегда актуальны.
+5. **Файлы №31 (Китай) и №32 (Иран)** формируются из 1–29 + `storage.json` → исключение серверов внутри страны по CIDR (`cn_cidr.txt` / `ir_cidr.txt`) → валидация → healthcheck (выборка до 4 000 кандидатов).
+6. Генерируются **QR-коды** (`qr-codes/1.png` … `32.png`) — кодируют URL подписки.
+7. Все изменения коммитятся и пушатся в репозиторий — ссылки в README всегда актуальны.
 
 ## 🗂 Структура репозитория
 ```text
 .github/workflows/   — CI/CD GitHub Actions
  ├─ auto_update.yml     — авто-обновление каждые ~30 мин по расписанию (+ workflow_dispatch)
  └─ manual_update.yml   — ручной запуск сборки
-githubmirror/        — сгенерированные .txt подписки (30 файлов)
-qr-codes/            — QR-коды подписок для импорта (30 PNG)
+githubmirror/        — сгенерированные .txt подписки (32 файла)
+qr-codes/            — QR-коды подписок для импорта (32 PNG)
 source/              — исходный код и конфигурации генератора
  ├─ main.py             — основной скрипт генерации
  ├─ requirements.txt    — зависимости Python
@@ -132,6 +156,8 @@ source/              — исходный код и конфигурации г�
  │   ├─ 30_urls.json        — источники белых списков для спецфайла №30
  │   ├─ storage.json        — личные проверенные конфиги (сливаются в 30.txt)
  │   ├─ cidrwhitelist.txt   — белый список CIDR (обход блокировок)
+ │   ├─ cn_cidr.txt         — CIDR-сети Китая (для файла №31)
+ │   ├─ ir_cidr.txt         — CIDR-сети Ирана (для файла №32)
  │   └─ sni_domains.json    — белый список SNI-доменов
  └─ src/
      ├─ __init__.py
@@ -149,8 +175,11 @@ source/              — исходный код и конфигурации г�
      ├─ release_fetcher.py  — актуальные ссылки на скачивание клиентов
      ├─ logger.py           — логирование
      └─ github_api.py       — статистика репозитория
-LICENSE               — лицензия GPL-3.0
-README.md             — этот файл
+ LICENSE               — лицензия GPL-3.0
+ README.md             — этот файл (русский)
+ README.en.md          — перевод на английский
+ README.zh.md          — перевод на упрощённый китайский
+ README.fa.md          — персидский перевод (فارسی)
 ```
 
 ---
@@ -174,6 +203,8 @@ python main.py                   # конфиги появятся в ../githubm
 > Рекомендованные списки: **[1](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/1.txt)**, **[6](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/6.txt)**, **[22](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/22.txt)**, **[23](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/23.txt)**, **[24](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/24.txt)** и **[25](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/25.txt)**.
 
 > Обход SNI/CIDR белых списков: **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)**.
+
+> Для Китая: **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**, для Ирана: **[32](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** — без серверов внутри этих стран.
 
  1) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/1.txt`
  2) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/2.txt`
@@ -205,6 +236,8 @@ python main.py                   # конфиги появятся в ../githubm
  28) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/28.txt`
  29) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/29.txt`
  30) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt`
+ 31) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt`
+ 32) `https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt`
 
 > 🔗 [Ссылка на QR-коды вечно актуальных конфигов](https://github.com/pie-with-jam/PulseProxy/tree/main/qr-codes)
 
@@ -212,7 +245,7 @@ python main.py                   # конфиги появятся в ../githubm
 
 # 📷 QR-коды
 
-QR-коды всех подписок лежат в папке [`qr-codes/`](https://github.com/pie-with-jam/PulseProxy/tree/main/qr-codes) — `1.png` … `30.png`. QR кодирует **ссылку на подписку**, поэтому подходит для импорта в мобильные клиенты и на Android TV (куда неудобно вставлять ссылку текстом).
+QR-коды всех подписок лежат в папке [`qr-codes/`](https://github.com/pie-with-jam/PulseProxy/tree/main/qr-codes) — `1.png` … `32.png`. QR кодирует **ссылку на подписку**, поэтому подходит для импорта в мобильные клиенты и на Android TV (куда неудобно вставлять ссылку текстом).
 
 ---
 
@@ -337,6 +370,7 @@ QR-коды всех подписок лежат в папке [`qr-codes/`](htt
 
 ### ⚙️ Рекомендуемые настройки клиента
 
+- **Подписка:** из **Китая** — файл **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**, из **Ирана** — файл **[32](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** (без серверов внутри этих стран); из РФ начните с файла **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)**.
 - **Mux** — **выкл.** (Настройки → Mux → disable). Mux часто ломает TLS и сайты.
 - **Фрагментация (fragment)** — **выкл.** Включайте точечно, только если конкретный сайт режется по SNI.
 - **Remote DNS:** для белых списков (файл **30**) — DNS провайдера или Яндекс; для обычного режима — `https://dns.google/dns-query`.
@@ -442,6 +476,9 @@ PulseProxy — форк с доработками: добавлены healthchec
 
 | Сеть / Монета | Адрес для перевода | QR-код |
 | :--- | :--- | :---: |
+| **GRAM (TON)** | `UQBcrOMKtoHYBhg0UtzoLCQobvO15Av-c8ICnLeHIwBV75ie` | <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=UQBcrOMKtoHYBhg0UtzoLCQobvO15Av-c8ICnLeHIwBV75ie" width="130" height="130" alt="GRAM TON QR"> |
 | **USDT (TON)** | `UQBcrOMKtoHYBhg0UtzoLCQobvO15Av-c8ICnLeHIwBV75ie` | <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=UQBcrOMKtoHYBhg0UtzoLCQobvO15Av-c8ICnLeHIwBV75ie" width="130" height="130" alt="USDT TON QR"> |
+| **BTC (BitCoin network)** | `bc1q656qrnfhe0f7wcwzdmk8zsva34s9fwhhsledwz` | <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=bc1q656qrnfhe0f7wcwzdmk8zsva34s9fwhhsledwz" width="130" height="130" alt="BTC QR"> |
+| **ETH (Etherium)** | `0xF162fb13798A7B177d9d7fB0C923779c1bFD0258` | <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=0xF162fb13798A7B177d9d7fB0C923779c1bFD0258" width="130" height="130" alt="ETH QR"> |
 
-> ⚠️ **Внимание:** отправляйте только **USDT в сети TON**.
+> ⚠️ **Внимание:** отправляйте монеты **только в указанных сетях** — GRAM/USDT в сети **TON**, BTC в сети **BitCoin**, ETH в сети **Etherium**.

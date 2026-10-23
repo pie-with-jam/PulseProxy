@@ -1,3 +1,4 @@
+import bisect
 import ipaddress
 import os
 from src.config import CIDR_WHITELIST_PATH, CIDR_WHITELIST_URL
@@ -90,3 +91,55 @@ def host_in_whitelist(host: str | None, networks: list) -> bool:
     except ValueError:
         return False
     return ip_in_whitelist(host, networks)
+
+
+# -------------------- БЫСТРЫЙ ИНДЕКС CIDR --------------------
+
+def build_network_index(networks: list) -> dict:
+    """Строит быстрый индекс по CIDR-подсетям для массовых проверок.
+
+    Линейный перебор подсетей на каждый IP слишком медленный для сотен
+    тысяч конфигов (например, 8802 подсетей Китая). Индекс объединяет
+    пересекающиеся/смежные подсети через collapse_addresses и ищет
+    бинарным поиском по отсортированным началам диапазонов."""
+    collapsed = list(ipaddress.collapse_addresses(networks))
+    index: dict[int, tuple[list[int], list[tuple[int, int]]]] = {}
+    for version in (4, 6):
+        ranges = sorted(
+            (int(net.network_address), int(net.broadcast_address))
+            for net in collapsed if net.version == version
+        )
+        if ranges:
+            index[version] = ([s for s, _ in ranges], ranges)
+    return index
+
+
+def ip_in_index(ip: str | None, index: dict) -> bool:
+    """Проверяет IP по быстрому индексу (O(log n) вместо O(n·m))."""
+    if not ip or not index:
+        return False
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    entry = index.get(addr.version)
+    if not entry:
+        return False
+    starts, ranges = entry
+    val = int(addr)
+    pos = bisect.bisect_right(starts, val) - 1
+    if pos < 0:
+        return False
+    start, end = ranges[pos]
+    return start <= val <= end
+
+
+def host_in_index(host: str | None, index: dict) -> bool:
+    """Хост в индексе: IP-литерал проверяется по индексу, домен — нет (False)."""
+    if not host:
+        return False
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return ip_in_index(host, index)
