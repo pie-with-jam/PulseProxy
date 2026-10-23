@@ -27,6 +27,7 @@ from src.config import (
     IRAN_FILE_INDEX,
     IRAN_FILE_NAME,
     CN_CIDR_PATH,
+    CN_EXEMPT_CIDR_PATHS,
     IR_CIDR_PATH,
     COUNTRY_PROBE_LIMIT,
 )
@@ -38,7 +39,6 @@ from src.cidr import (
     host_in_whitelist,
     parse_cidr_lines,
     build_network_index,
-    ip_in_index,
     host_in_index,
 )
 from src.healthcheck import extract_endpoint, probe, ProbeResult, _is_ip as _is_ip_literal
@@ -486,27 +486,62 @@ def _dedupe_pool(own_lines: list[str], pool: list[str]) -> tuple[list[str], set[
     return candidates, own_set
 
 
+def _load_exempt_index(paths: list, label: str):
+    """Индексы исключений (Гонконг/Макао/Тайвань): IP в них — не «внутри страны»."""
+    networks = []
+    for p in paths:
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                found = parse_cidr_lines(f.read())
+            networks.extend(found)
+        except FileNotFoundError:
+            log(f"⚠️ {label}: не найден {os.path.basename(p)} — исключение не применено")
+        except Exception as e:
+            log(f"⚠️ {label}: ошибка чтения {os.path.basename(p)}: {e}")
+    if not networks:
+        return None
+    index = build_network_index(networks)
+    log(f"🛟 {label}: исключения (HK/MO/TW) — {len(networks)} подсетей")
+    return index
+
+
 def create_country_configs() -> list[str]:
     """Создаёт страновые файлы для пользователей из Китая (№31) и Ирана (№32).
 
     Логика: конфиги, чей сервер находится внутри самой страны (по CIDR),
-    бесполезны для обхода её же фильтров — они исключаются. Доменные эндпоинты
-    проверяются по реальному IP соединения (peer_ip) на стадии healthcheck.
+    бесполезны для обхода её же фильтров — они исключаются. Для Китая
+    диапазоны Гонконга/Макао/Тайваня из исключения исключены: они вне GFW
+    и остаются полезными близкими выходами. Доменные эндпоинты проверяются
+    по реальному IP соединения (peer_ip) на стадии healthcheck.
     Живость проверяется с серверов CI (не из КНР/Ирана) — это приближение."""
     specs = [
-        (CHINA_FILE_INDEX, CHINA_FILE_NAME, CN_CIDR_PATH, "Китай"),
-        (IRAN_FILE_INDEX, IRAN_FILE_NAME, IR_CIDR_PATH, "Иран"),
+        (CHINA_FILE_INDEX, CHINA_FILE_NAME, CN_CIDR_PATH, "Китай", CN_EXEMPT_CIDR_PATHS),
+        (IRAN_FILE_INDEX, IRAN_FILE_NAME, IR_CIDR_PATH, "Иран", []),
     ]
     written: list[str] = []
 
     prepared: list[str] | None = None
     own_set: set[str] = set()
+    exempt_cache: dict = {}
 
-    for file_index, file_name, cidr_path, label in specs:
+    for file_index, file_name, cidr_path, label, exempt_paths in specs:
         out_path = os.path.join(GITHUBMIRROR_DIR, file_name)
         index = _load_country_index(cidr_path, label)
         if index is None:
             continue
+
+        exempt_key = tuple(exempt_paths)
+        if exempt_key not in exempt_cache:
+            exempt_cache[exempt_key] = _load_exempt_index(exempt_paths, label) if exempt_paths else None
+        exempt = exempt_cache[exempt_key]
+
+        def _in_country(host: str) -> bool:
+            """IP внутри страны, но не в зоне исключения (HK/MO/TW)."""
+            if not host or not host_in_index(host, index):
+                return False
+            if exempt and host_in_index(host, exempt):
+                return False
+            return True
 
         # Общий пул кандидатов готовится один раз для обоих файлов.
         if prepared is None:
@@ -525,12 +560,12 @@ def create_country_configs() -> list[str]:
             prepared = candidates
         candidates = prepared
 
-        # ---- 1. Статический отсев: сервер-IP внутри страны ----
+        # ---- 1. Статический отсев: сервер-IP внутри страны (кроме HK/MO/TW) ----
         dropped_in_country = 0
         fresh: list[str] = []
         for line in candidates:
             ep = extract_endpoint(line)
-            if ep and host_in_index(ep.host, index):
+            if ep and _in_country(ep.host):
                 dropped_in_country += 1
                 continue
             fresh.append(line)
@@ -566,8 +601,8 @@ def create_country_configs() -> list[str]:
                         reason = result.reason if result is not None else "нет вердикта"
                         drop_reasons[reason] = drop_reasons.get(reason, 0) + 1
                         continue
-                    # Домен мог разрешиться на сервер внутри страны — исключаем.
-                    if result.peer_ip and ip_in_index(result.peer_ip, index):
+                    # Домен мог разрешиться на сервер внутри страны (кроме HK/MO/TW) — исключаем.
+                    if result.peer_ip and _in_country(result.peer_ip):
                         dropped_in_country += 1
                         continue
                     alive.append(line)

@@ -125,7 +125,7 @@
 **[31.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)** 和 **[32.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** —— 面对国家级防火墙的用户（中国、伊朗）的国别订阅：
 
 - 候选配置收集自文件 **1–29** 和 `storage.json`（去重、结构校验）；
-- **排除本国境内的服务器**：IP 来自 `cn_cidr.txt` / `ir_cidr.txt`（8 802 / 1 901 个子网）的配置会被静态过滤，域名则在健康检查时根据连接的真实 IP 校验 —— 连接自己国家境内的服务器去绕过本国的封锁毫无意义；
+- **排除本国境内的服务器**：IP 来自 `cn_cidr.txt` / `ir_cidr.txt`（8 802 / 1 901 个子网）的配置会被静态过滤，域名则在健康检查时根据连接的真实 IP 校验 —— 连接自己国家境内的服务器去绕过本国的封锁毫无意义；**香港、澳门和台湾**（`hk_cidr.txt` / `mo_cidr.txt` / `tw_cidr.txt`）不计入境内排除：它们位于 GFW 之外，仍然是有用的就近出口；
 - 进行**健康检查**（TCP/TLS 握手），每个文件最多均匀抽取 4 000 个候选（1–29 的完整池太大，无法全部检查；可通过 `COUNTRY_PROBE_LIMIT` 调整上限）。
 
 > ⚠️ **重要：** 存活检查是在 **GitHub Actions 的服务器上执行的，而不是在中国/伊朗境内** —— 防火长城（GFW）/伊朗过滤器可能会屏蔽一部分在别处正常可用的配置。文件提供的是经过筛选的候选，而不是境内可用性的保证；如果无法连接，请尝试列表中的下一个服务器。
@@ -159,6 +159,9 @@ source/              — 生成器的源代码与配置
  │   ├─ storage.json        — 个人已验证的配置（合并进 30.txt）
  │   ├─ cidrwhitelist.txt   — CIDR 白名单（绕过封锁）
  │   ├─ cn_cidr.txt         — 中国的 CIDR 网段（用于文件 №31）
+ │   ├─ hk_cidr.txt         — 香港的 CIDR 网段（№31 排除项）
+ │   ├─ mo_cidr.txt         — 澳门的 CIDR 网段（№31 排除项）
+ │   ├─ tw_cidr.txt         — 台湾的 CIDR 网段（№31 排除项）
  │   ├─ ir_cidr.txt         — 伊朗的 CIDR 网段（用于文件 №32）
  │   └─ sni_domains.json    — SNI 域名白名单
  └─ src/

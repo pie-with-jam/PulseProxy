@@ -22,6 +22,13 @@ STORAGE_PATH = os.path.join(SOURCE_ROOT, "config", "storage.json")
 CIDR_WHITELIST_PATH = os.path.join(SOURCE_ROOT, "config", "cidrwhitelist.txt")
 CN_CIDR_PATH = os.path.join(SOURCE_ROOT, "config", "cn_cidr.txt")
 IR_CIDR_PATH = os.path.join(SOURCE_ROOT, "config", "ir_cidr.txt")
+# Исключения для определения «внутри Китая»: Гонконг/Макао/Тайвань —
+# близкие зарубежные выходы, полезные для обхода GFW, в cn_cidr захватываются ложно.
+CN_EXEMPT_CIDR_PATHS = [
+    os.path.join(SOURCE_ROOT, "config", "hk_cidr.txt"),
+    os.path.join(SOURCE_ROOT, "config", "mo_cidr.txt"),
+    os.path.join(SOURCE_ROOT, "config", "tw_cidr.txt"),
+]
 QRCODES_DIR = os.path.join(GIT_ROOT, "qr-codes")
 
 # -------------------- ЗАГРУЗКА КОНФИГУРАЦИИ --------------------

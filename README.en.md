@@ -125,7 +125,7 @@ If the `raw.githubusercontent.com` link itself won't open (white-list / unattend
 **[31.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)** and **[32.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** — country-specific subscriptions for users behind national firewalls (China, Iran):
 
 - candidates are gathered from files **1–29** and `storage.json` (deduplication, structural validation);
-- **servers inside the country are excluded**: configs with IPs from `cn_cidr.txt` / `ir_cidr.txt` (8 802 / 1 901 subnets) are filtered out statically, and domains are checked against the connection's real IP during the healthcheck — connecting to a server in your own country to bypass that same country's blocks is pointless;
+- **servers inside the country are excluded**: configs with IPs from `cn_cidr.txt` / `ir_cidr.txt` (8 802 / 1 901 subnets) are filtered out statically, and domains are checked against the connection's real IP during the healthcheck — connecting to a server in your own country to bypass that same country's blocks is pointless; **Hong Kong, Macau and Taiwan** (`hk_cidr.txt` / `mo_cidr.txt` / `tw_cidr.txt`) are exempted from the exclusion: they sit outside the GFW and remain useful nearby exits;
 - a **healthcheck** liveness check runs (TCP/TLS handshake) on an evenly sampled batch of up to 4 000 candidates per file (the full 1–29 pool is too large to test entirely; the limit is configurable via `COUNTRY_PROBE_LIMIT`).
 
 > ⚠️ **Important:** liveness is checked **from GitHub Actions servers, not from China/Iran** — the GFW / the Iranian filter may block some configs that work fine everywhere else. The file is a filtered candidate list, not a guarantee of availability inside the country; if something is unreachable, try the next servers in the list.
@@ -159,6 +159,9 @@ source/              — source code and generator configuration
  │   ├─ storage.json        — personal verified configs (merged into 30.txt)
  │   ├─ cidrwhitelist.txt   — CIDR white list (block bypass)
  │   ├─ cn_cidr.txt         — China CIDR networks (for file #31)
+ │   ├─ hk_cidr.txt         — Hong Kong CIDR networks (exempt from #31)
+ │   ├─ mo_cidr.txt         — Macau CIDR networks (exempt from #31)
+ │   ├─ tw_cidr.txt         — Taiwan CIDR networks (exempt from #31)
  │   ├─ ir_cidr.txt         — Iran CIDR networks (for file #32)
  │   └─ sni_domains.json    — SNI domain white list
  └─ src/
