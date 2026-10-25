@@ -130,6 +130,8 @@
 
 > ⚠️ **مهم:** بررسی سلامت **از سرورهای GitHub Actions انجام می‌شود، نه از چین/ایران** — دیوار بزرگ (GFW) یا فیلتر ایران ممکن است بخشی از کانفیگ‌هایی را که همه‌جا کار می‌کنند مسدود کند. فایل، کاندیدای فیلترشده است، نه تضمین دسترسی‌پذیری داخل کشور؛ اگر در دسترس نبود، سرورهای بعدی فهرست را امتحان کنید.
 
+> 🔒 **DoH (DNS over HTTPS) را فراموش نکنید:** دیوار بزرگ و فیلتر ایران DNS معمولی را آلوده می‌کنند. Remote DNS را روی `https://dns.google/dns-query` (گوگل) یا `https://cloudflare-dns.com/dns-query` (کلادفلر) بگذارید — در غیر این صورت دامنه‌ها پیش از اتصال به پروکسی جعل می‌شوند.
+
 > 💡 این فایل‌ها همچنین برای کاربران این کشورها در بخش مسیریابی v2rayNG در پایین توصیه شده‌اند.
 
 ---
@@ -378,7 +380,7 @@ python main.py                   # کانفیگ‌ها در ../githubmirror ظا
 - **اشتراک:** از **چین** — فایل **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**، از **ایران** — فایل **[32](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** (بدون سرورهای داخل این کشورها)؛ از روسیه با فایل **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)** شروع کنید.
 - **Mux** — **خاموش** (تنظیمات → Mux → disable). Mux اغلب TLS و سایت‌ها را خراب می‌کند.
 - **فرگمنت (fragment)** — **خاموش**. فقط وقتی سایتی خاص بر اساس SNI بریده می‌شود، به‌صورت هدفمند روشن کنید.
-- **Remote DNS:** برای فهرست سفید (فایل **30**) — DNS ارائه‌دهنده یا یاندکس؛ برای حالت معمولی — `https://dns.google/dns-query`.
+- **Remote DNS:** برای فهرست سفید (فایل **30**) — DNS ارائه‌دهنده یا یاندکس؛ برای حالت معمولی — DoH: `https://dns.google/dns-query` (گوگل) یا `https://cloudflare-dns.com/dns-query` (کلادفلر).
 
 ---
 
@@ -416,7 +418,7 @@ python main.py                   # کانفیگ‌ها در ../githubmirror ظا
 
 **1.** کانفیگ دیگری از اشتراک را امتحان کنید (VPN را خاموش و روشن کنید یا سروری با پینگ کمتر انتخاب کنید).
 
-**2.** اگر پینگ موفق است ولی ترافیکی نیست — **Remote DNS** را در کلاینت عوض کنید، مثلاً `https://dns.google/dns-query` (در v2rayNG: «تنظیمات» → «تنظیمات DNS» → «Basic DNS Settings»).
+**2.** اگر پینگ موفق است ولی ترافیکی نیست — **Remote DNS** را در کلاینت به DoH تغییر دهید، مثلاً `https://dns.google/dns-query` (گوگل) یا `https://cloudflare-dns.com/dns-query` (کلادفلر) (در v2rayNG: «تنظیمات» → «تنظیمات DNS» → «Basic DNS Settings»).
 
 **3.** برای فهرست سفید (فایل 30) از DNS ارائه‌دهنده (یا یاندکس) استفاده کنید — DNSهای خارجی در حالت فهرست سفید کار نمی‌کنند.
 

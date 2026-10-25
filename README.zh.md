@@ -130,6 +130,8 @@
 
 > ⚠️ **重要：** 存活检查是在 **GitHub Actions 的服务器上执行的，而不是在中国/伊朗境内** —— 防火长城（GFW）/伊朗过滤器可能会屏蔽一部分在别处正常可用的配置。文件提供的是经过筛选的候选，而不是境内可用性的保证；如果无法连接，请尝试列表中的下一个服务器。
 
+> 🔒 **别忘了 DoH（DNS over HTTPS）：** GFW 和伊朗过滤器会污染普通 DNS。请把 Remote DNS 切换为 `https://dns.google/dns-query`（Google）或 `https://cloudflare-dns.com/dns-query`（Cloudflare）—— 否则域名在连接代理之前就会被篡改。
+
 > 💡 在下文的 v2rayNG 路由一节中，这两个文件同样推荐给来自这些国家的用户。
 
 ---
@@ -378,7 +380,7 @@ python main.py                   # 配置将生成到 ../githubmirror
 - **订阅：** 来自**中国**用文件 **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**，来自**伊朗**用文件 **[32](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)**（不含这两个国家境内的服务器）；来自俄罗斯请从文件 **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)** 开始。
 - **Mux** —— **关闭**（设置 → Mux → disable）。Mux 经常会弄坏 TLS 和网站。
 - **分片（fragment）** —— **关闭**。仅在特定网站按 SNI 被切断时针对性开启。
-- **Remote DNS：** 白名单模式（文件 **30**）用运营商 DNS 或 Yandex；普通模式用 `https://dns.google/dns-query`。
+- **Remote DNS：** 白名单模式（文件 **30**）用运营商 DNS 或 Yandex；普通模式用 DoH：`https://dns.google/dns-query`（Google）或 `https://cloudflare-dns.com/dns-query`（Cloudflare）。
 
 ---
 
@@ -416,7 +418,7 @@ python main.py                   # 配置将生成到 ../githubmirror
 
 **1.** 换用订阅中的另一个配置（关闭再打开 VPN，或选择 ping 更低的服务器）。
 
-**2.** 如果 ping 正常但没有流量 —— 在客户端中更改 **Remote DNS**，例如设为 `https://dns.google/dns-query`（v2rayNG 中：「设置」→「DNS 设置」→「Basic DNS Settings」）。
+**2.** 如果 ping 正常但没有流量 —— 在客户端中把 **Remote DNS** 改为 DoH，例如 `https://dns.google/dns-query`（Google）或 `https://cloudflare-dns.com/dns-query`（Cloudflare）（v2rayNG 中：「设置」→「DNS 设置」→「Basic DNS Settings」）。
 
 **3.** 白名单模式（文件 30）请使用运营商 DNS（或 Yandex）—— 境外 DNS 在白名单模式下无法工作。
 

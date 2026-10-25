@@ -128,6 +128,8 @@
 
 > ⚠️ **Важно:** живость проверяется **с серверов GitHub Actions, а не из Китая/Ирана** — GFW/иранский фильтр может блокировать часть работающих отовсюду конфигов. Файл — это отфильтрованный кандидат, а не гарантия доступности внутри страны; при недоступности пробуйте следующие серверы списка.
 
+> 🔒 **Не забудьте DoH (DNS over HTTPS):** GFW и иранский фильтр отравляют обычный DNS. Переключите Remote DNS на `https://dns.google/dns-query` (Google) или `https://cloudflare-dns.com/dns-query` (Cloudflare) — иначе домены будут подменяться ещё до соединения с прокси.
+
 > 💡 Эти файлы также рекомендованы для пользователей из этих стран в разделе маршрутизации v2rayNG ниже.
 
 ---
@@ -376,7 +378,7 @@ QR-коды всех подписок лежат в папке [`qr-codes/`](htt
 - **Подписка:** из **Китая** — файл **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**, из **Ирана** — файл **[32](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** (без серверов внутри этих стран); из РФ начните с файла **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)**.
 - **Mux** — **выкл.** (Настройки → Mux → disable). Mux часто ломает TLS и сайты.
 - **Фрагментация (fragment)** — **выкл.** Включайте точечно, только если конкретный сайт режется по SNI.
-- **Remote DNS:** для белых списков (файл **30**) — DNS провайдера или Яндекс; для обычного режима — `https://dns.google/dns-query`.
+- **Remote DNS:** для белых списков (файл **30**) — DNS провайдера или Яндекс; для обычного режима — DoH: `https://dns.google/dns-query` (Google) или `https://cloudflare-dns.com/dns-query` (Cloudflare).
 
 ---
 
@@ -414,7 +416,7 @@ QR-коды всех подписок лежат в папке [`qr-codes/`](htt
 
 **1.** Попробуйте другой конфиг из подписки (включи/выключи VPN или выберите сервер с меньшим пингом).
 
-**2.** Если пинг успешный, а трафика нет — смените **Remote DNS** в клиенте, например на `https://dns.google/dns-query` (в v2rayNG: «Настройки» → «Настройки DNS» → «Basic DNS Settings»).
+**2.** Если пинг успешный, а трафика нет — смените **Remote DNS** в клиенте на DoH, например `https://dns.google/dns-query` (Google) или `https://cloudflare-dns.com/dns-query` (Cloudflare) (в v2rayNG: «Настройки» → «Настройки DNS» → «Basic DNS Settings»).
 
 **3.** Для белых списков (файл 30) используйте DNS провайдера (или Яндекс) — иностранные DNS в режиме БС не работают.
 

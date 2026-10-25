@@ -130,6 +130,8 @@ If the `raw.githubusercontent.com` link itself won't open (white-list / unattend
 
 > ⚠️ **Important:** liveness is checked **from GitHub Actions servers, not from China/Iran** — the GFW / the Iranian filter may block some configs that work fine everywhere else. The file is a filtered candidate list, not a guarantee of availability inside the country; if something is unreachable, try the next servers in the list.
 
+> 🔒 **Don't forget DoH (DNS over HTTPS):** the GFW and the Iranian filter poison plain DNS. Switch Remote DNS to `https://dns.google/dns-query` (Google) or `https://cloudflare-dns.com/dns-query` (Cloudflare) — otherwise domains get spoofed even before you connect to the proxy.
+
 > 💡 These files are also recommended for users from these countries in the v2rayNG routing section below.
 
 ---
@@ -378,7 +380,7 @@ For Android we recommend **[v2rayNG](https://github.com/2dust/v2rayNG/releases)*
 - **Subscription:** from **China** — file **[31](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/31.txt)**, from **Iran** — file **[32](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/32.txt)** (no servers inside those countries); from Russia, start with file **[30](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)**.
 - **Mux** — **off** (Settings → Mux → disable). Mux often breaks TLS and websites.
 - **Fragmentation (fragment)** — **off**. Turn it on selectively, only when a specific site is being cut by SNI.
-- **Remote DNS:** for white lists (file **30**) — your provider's DNS or Yandex; for the regular mode — `https://dns.google/dns-query`.
+- **Remote DNS:** for white lists (file **30**) — your provider's DNS or Yandex; for the regular mode — DoH: `https://dns.google/dns-query` (Google) or `https://cloudflare-dns.com/dns-query` (Cloudflare).
 
 ---
 
@@ -416,7 +418,7 @@ There are plenty of public configs (sometimes thousands), and running a real con
 
 **1.** Try another config from the subscription (toggle the VPN off and on, or pick a server with a lower ping).
 
-**2.** If the ping succeeds but there's no traffic, change the **Remote DNS** in the client, e.g. to `https://dns.google/dns-query` (in v2rayNG: "Settings" → "DNS Settings" → "Basic DNS Settings").
+**2.** If the ping succeeds but there's no traffic, change the **Remote DNS** in the client to DoH, e.g. `https://dns.google/dns-query` (Google) or `https://cloudflare-dns.com/dns-query` (Cloudflare) (in v2rayNG: "Settings" → "DNS Settings" → "Basic DNS Settings").
 
 **3.** For white lists (file 30), use your provider's DNS (or Yandex) — foreign DNS doesn't work in white-list mode.
 
