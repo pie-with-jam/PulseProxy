@@ -1,9 +1,10 @@
-vless://8a1f8853-9a71-4ef2-a64c-4f0a94c2e14b@45.151.71.142:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc&security=reality&sni=gb.ozon.ru&type=tcp#%E7%BE%8E%E5%9B%BD+V2CROSS.COM
-vless://83218234-0bab-4884-b2a5-d298c4d6e0b7@51.83.6.5:20373?path=/mb-vless&security=none&encryption=none&host=51.75.118.151&type=ws#%E6%B3%95%E5%9B%BD+OVH
-vless://30572b57-f5ab-4eb8-82d4-a24d399b99f6@45.144.221.169:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&headerType=none&pbk=Buy9pirx5Ih_LHwc6R3BCmvRL4g4Ljx6B3MEsZfIZhU&security=reality&sni=arizona.eosapp.net&type=tcp#%E7%BE%8E%E5%9B%BD+V2CROSS.COM
-ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.63:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
-ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.54:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
-ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.99:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+vless://76b6a658-ce80-4500-b24d-404c94639ac6@213.152.165.203:2091?security=reality&type=tcp&packetEncoding=xudp&sni=www.apple.com&fp=chrome&flow=xtls-rprx-vision&sid=08a4b1f473932632&pbk=1N6AW5YuEwBoYcZK5KuugDzBHsa0NKZMT8QI-EmyL0k#%E8%8D%B7%E5%85%B0+V2CROSS.COM
+vless://30572b57-f5ab-4eb8-82d4-a24d399b99f6@185.179.190.170:59222?mode=gun&security=reality&encryption=none&pbk=riOqDvO6CI06_GP7aJEtDH27zPWu6BiFwGrUESatk1I&fp=chrome&type=grpc&sni=tbank.ru&sid=e03d3096bebd#%E4%BF%84%E7%BD%97%E6%96%AF+V2CROSS.COM
+vless://af30161a-255f-462f-91a9-e87d469502b3@tr.drive-host.uk:443?security=reality&encryption=none&pbk=OkpVqxUj7ycs77ceBMx3hzabS-5kk8nKVQUs0Ow1nkQ&headerType=none&fp=chrome&spx=/&type=tcp&flow=xtls-rprx-vision&sni=tr.drive-host.uk&sid=f74c6a18133e2e72#%E5%9C%9F%E8%80%B3%E5%85%B6+V2CROSS.COM
 trojan://humanity@141.193.213.172:443?path=/assignment&security=tls&insecure=0&host=www.calmlunch.com&ech=ip.gs+udp://8.8.8.8&type=ws&allowInsecure=0&sni=www.calmlunch.com#%E7%BE%8E%E5%9B%BD+RF+Engineering
-vless://57beeeb0-03fc-4fc9-94da-7604488a7134@funagfrdfs.alixxplay.com:46105?encryption=none&flow=xtls-rprx-vision&fp=chrome&headerType=none&host=%2F%3FTelegram---PLANB_NET---PLANB_NET---PLANB_NET---PLANB_NET&pbk=Lk5nwDxC2tr3J7hT8emhUUiMX8cHyKX9TiRj_EnAiik&security=reality&sid=28f5c1f8f98a&sni=www.lamer.com.sg&type=tcp#%E6%96%B0%E5%8A%A0%E5%9D%A1+Amazon%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83
+ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.54:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.18:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+ss://YWVzLTI1Ni1nY206TlRpSEJnNjRmc1k4dThEYkdydHlwRDlnUEdTTDM4NnA=@46.17.43.227:18443#%E4%BF%84%E7%BD%97%E6%96%AF+%E9%9E%91%E9%9D%BC%E6%96%AF%E5%9D%A6%E5%96%80%E5%B1%B1justhost
 ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.90:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.27:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.81:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
