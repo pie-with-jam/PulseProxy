@@ -11,7 +11,7 @@
     "enabled": true,
     "locked": false,
     "ip": ["geoip:ir"],
-    "domain": ["geosite:ir"],
+    "domain": ["domain:ir"],
     "outboundTag": "direct",
     "remarks": "ایران — مستقیم"
   },
@@ -54,7 +54,7 @@
     "enabled": true,
     "locked": false,
     "ip": ["geoip:ru"],
-    "domain": ["geosite:ru"],
+    "domain": ["domain:ru", "domain:su", "domain:xn--p1ai"],
     "outboundTag": "direct",
     "remarks": "Россия — напрямую"
   },

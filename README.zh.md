@@ -364,7 +364,7 @@ python main.py                   # 配置将生成到 ../githubmirror
 
 - **直连（direct）：**
   - 局域网（LAN）；
-  - **伊朗**（`geoip:ir` / `geosite:ir`）、**中国**（`geoip:cn` / `geosite:cn`）、**俄罗斯**（`geoip:ru` / `geosite:ru`）；
+  - **伊朗**（`geoip:ir` + 后缀 `domain:ir`）、**中国**（`geoip:cn` / `geosite:cn`）、**俄罗斯**（`geoip:ru` + 后缀 `domain:ru` / `domain:su`）；
   - 中国和俄罗斯的公共 DNS（AliDNS、DNSPod、Yandex、SafeDNS）；
   - IP 与 DNS 泄漏检测服务 —— **ipify.org, 2ip.io, icanhazip.com, ifconfig.me, ipleak.net, dnsleaktest.com** 等（用于查看**真实** IP）；
   - 应用商店 —— **F-Droid, Huawei, Xiaomi**、Samsung、Amazon（巨大的下载流量不走代理）。
@@ -372,6 +372,8 @@ python main.py                   # 配置将生成到 ../githubmirror
 - **其余全部 → 走代理**（默认行为，无需额外设置）。
 
 **导入方式：** 复制 JSON 内容 → 在 v2rayNG 中点击左上角 **「三条横线」** → **「设置」** → **「Routing」** → **「⋮」** → **「从剪贴板导入」**。规则顺序很重要 —— 请勿打乱或删除 `geoip:private` 块。
+
+> ✅ **在 v2rayNG 正式版中稳定运行：** 本文件只使用标准 `geosite.dat` 中确实存在的分类（`geosite:private`、`geosite:cn`）以及 TLD 后缀 `domain:ir` / `domain:ru`。标准 `geosite.dat` 中**没有** `geosite:ir` 和 `geosite:ru` 分类 —— 任何引用它们的规则都会导致配置失败并报错 `code not found in geosite.dat: IR`。如果导入第三方或旧版规则后出现该错误 —— 请删除含 `geosite:ir` / `geosite:ru` 的规则，或重新导入本文件（无需更新 Geo 文件：任何标准构建中都不存在这些分类）。
 
 > ⚠️ **重要：无论你身在何处，都要启用全部路由规则（`enabled: true`）。** 不要关闭「别国」的规则 —— 它们不会造成干扰，只是让需要的流量绕过代理（例如，你可以住在俄罗斯，但保留伊朗/中国的规则处于开启状态）。
 

@@ -364,7 +364,7 @@ For Android we recommend **[v2rayNG](https://github.com/2dust/v2rayNG/releases)*
 
 - **Direct (direct):**
   - the local network (LAN);
-  - **Iran** (`geoip:ir` / `geosite:ir`), **China** (`geoip:cn` / `geosite:cn`), **Russia** (`geoip:ru` / `geosite:ru`);
+  - **Iran** (`geoip:ir` plus the `domain:ir` suffix), **China** (`geoip:cn` / `geosite:cn`), **Russia** (`geoip:ru` plus the `domain:ru` / `domain:su` suffixes);
   - Chinese and Russian public DNS (AliDNS, DNSPod, Yandex, SafeDNS);
   - IP-lookup and DNS-leak services — **ipify.org, 2ip.io, icanhazip.com, ifconfig.me, ipleak.net, dnsleaktest.com**, etc. (so you can see your **real** IP);
   - app stores — **F-Droid, Huawei, Xiaomi**, Samsung, Amazon (huge downloads don't get pushed through the proxy).
@@ -372,6 +372,8 @@ For Android we recommend **[v2rayNG](https://github.com/2dust/v2rayNG/releases)*
 - **Everything else → through the proxy** (the default behavior — nothing extra to configure).
 
 **Import:** copy the JSON contents → in v2rayNG open the "three lines" menu on the left → **"Settings"** → **"Routing"** → **"⋮"** → **"Import from clipboard"**. Rule order matters — don't shuffle or delete the `geoip:private` block.
+
+> ✅ **Stable on stable v2rayNG releases:** the file only uses categories that actually exist in the standard `geosite.dat` (`geosite:private`, `geosite:cn`) plus the TLD suffixes `domain:ir` / `domain:ru`. The `geosite:ir` and `geosite:ru` categories do **not** exist in the standard `geosite.dat` — any rule referencing them breaks the config with `code not found in geosite.dat: IR`. If you see this error after importing third-party or older rules — delete the `geosite:ir` / `geosite:ru` rules or re-import our file (updating geo files won't help — these categories are absent from every standard build).
 
 > ⚠️ **Important: turn ALL routing rules ON (`enabled: true`), no matter where you live.** Don't switch off the rules "for other" countries — they don't get in the way, they just keep only the needed traffic off the proxy (for example, you can live in Russia but leave the Iran/China rules enabled).
 
