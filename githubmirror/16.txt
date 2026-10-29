@@ -1,5 +1,5 @@
-vless://e9a8144e-5237-488a-afb1-9ca3d8d54c80@sg1.zestapp778.com:56984?sni=sg1.zestapp778.com&fp=chrome&security=tls#%E7%BE%8E%E5%9B%BD+V2CROSS.COM
-vless://e9a8144e-5237-488a-afb1-9ca3d8d54c80@ca001.zestapp778.com:32355?sni=ca001.zestapp778.com&fp=chrome&security=tls#%E7%BE%8E%E5%9B%BD+V2CROSS.COM
-vless://e9a8144e-5237-488a-afb1-9ca3d8d54c80@th001.zestapp778.com:22222?sni=th001.zestapp778.com&fp=chrome&security=tls#%E7%BE%8E%E5%9B%BD+%E5%8D%8E%E7%9B%9B%E9%A1%BFCogent%E9%80%9A%E4%BF%A1%E5%85%AC%E5%8F%B8
+ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.72:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
 vless://405b964e-a2d2-454f-aaaa-711cc218897c@5.253.28.240:40443?&security=reality&flow=xtls-rprx-vision&pbk=cwmcqsfS7klQlkcoUNuATEk0NiPY-NnRb9z8rCJDQw0&sid=88b6&fp=random&sni=deepl.com&type=tcp&headerType=none&host=deepl.com&path=%2F#%E5%BE%B7%E5%9B%BD+V2CROSS.COM
-ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.63:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+vless://f27b6f65-6e59-4f89-b929-afa397ca587f@155.212.240.10:443?&security=tls&fp=firefox&sni=n.bitpulse.me&type=ws&headerType=none&host=n.bitpulse.me&path=%2F019bcbad-3813-7cce-8786-3ac0e418f128%3Fed%3D2560#%E7%BE%8E%E5%9B%BD+V2CROSS.COM
+ss://YWVzLTI1Ni1nY206WlJwZ2FCZUd4dEVOSVhndmhwa1pCS3o5R25XUlMyZFljeDlPK2EyaXdOND0=@202.50.253.99:19999#%E6%96%B0%E8%A5%BF%E5%85%B0+V2CROSS.COM
+trojan://humanity@172.67.203.46:443?allowInsecure=0&alpn=http%2F1.1&path=%2Fassignment&security=tls&sni=www.cordweave.com&type=ws#%E7%BE%8E%E5%9B%BD+CloudFlare%E8%8A%82%E7%82%B9
