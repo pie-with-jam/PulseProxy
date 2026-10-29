@@ -57,7 +57,7 @@ Configs are updated **automatically every ~30 minutes** (GitHub Actions + an ext
 | № | File | Source | Configs |
 |--|--|--|--|
 | 1 | [`1.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/1.txt) | [sakha1370/OpenRay](https://github.com/sakha1370/OpenRay/raw/refs/heads/main/output/all_valid_proxies.txt) | 10 553 |
-| 2 | [`2.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/2.txt) | [sevcator/5ubscrpt10n](https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/vl.txt) | 405 412 |
+| 2 | [`2.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/2.txt) | [pie-with-jam/5ubscrpt10n-Reborn](https://raw.githubusercontent.com/pie-with-jam/5ubscrpt10n-Reborn/main/protocols/vl.txt) | 405 412 |
 | 3 | [`3.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/3.txt) | [yitong2333/proxy-minging](https://raw.githubusercontent.com/yitong2333/proxy-minging/refs/heads/main/v2ray.txt) | 13 293 |
 | 4 | [`4.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/4.txt) | [acymz/AutoVPN](https://raw.githubusercontent.com/acymz/AutoVPN/refs/heads/main/data/V2.txt) | 450 |
 | 5 | [`5.txt`](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/5.txt) | [miladtahanian/V2RayCFGDumper](https://raw.githubusercontent.com/miladtahanian/V2RayCFGDumper/main/sub.txt) | 389 |
