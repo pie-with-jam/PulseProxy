@@ -383,6 +383,7 @@ python main.py                   # 配置将生成到 ../githubmirror
 - **Mux** —— **关闭**（设置 → Mux → disable）。Mux 经常会弄坏 TLS 和网站。
 - **分片（fragment）** —— **关闭**。仅在特定网站按 SNI 被切断时针对性开启。
 - **Remote DNS：** 白名单模式（文件 **30**）用运营商 DNS 或 Yandex；普通模式用 DoH：`https://dns.google/dns-query`（Google）或 `https://cloudflare-dns.com/dns-query`（Cloudflare）。
+- **域名策略**（「设置」→「Routing」→「Domain Strategy」）—— **`IPIfNonMatch`**：先按域名匹配，未命中任何规则的域名才解析 IP 检查 `geoip` 规则。不要保留 `AsIs`（默认值）—— 该模式下 `geoip:ir` / `geoip:cn` / `geoip:ru` 无法匹配域名，本地流量会走代理；`IPOnDemand` 则会对每个连接多余地解析 DNS。注意：`IPIfNonMatch` 会解析未命中的域名，因此 Remote DNS 必须用 DoH（见上）。
 
 ---
 

@@ -383,6 +383,7 @@ For Android we recommend **[v2rayNG](https://github.com/2dust/v2rayNG/releases)*
 - **Mux** — **off** (Settings → Mux → disable). Mux often breaks TLS and websites.
 - **Fragmentation (fragment)** — **off**. Turn it on selectively, only when a specific site is being cut by SNI.
 - **Remote DNS:** for white lists (file **30**) — your provider's DNS or Yandex; for the regular mode — DoH: `https://dns.google/dns-query` (Google) or `https://cloudflare-dns.com/dns-query` (Cloudflare).
+- **Domain strategy** ("Settings" → "Routing" → "Domain Strategy") — **`IPIfNonMatch`**: domain rules match instantly, while `geoip` rules are checked only for domains that matched no rule at all. Don't leave `AsIs` (the default) — with it `geoip:ir` / `geoip:cn` / `geoip:ru` never match domains and local traffic goes through the proxy; `IPOnDemand` resolves every connection needlessly. Note: `IPIfNonMatch` resolves the unmatched domains, so your Remote DNS must be DoH (see above).
 
 ---
 
