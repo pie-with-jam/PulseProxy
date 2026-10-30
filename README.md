@@ -470,6 +470,8 @@ QR-коды всех подписок лежат в папке [`qr-codes/`](htt
 
 Спасибо также мейнтейнеру [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) (источник №14 в таблице): на нашу [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) с упавшим scheduled-workflow ответили на следующий день и починили пуш в main.
 
+Спасибо проекту [mehdirzfx/v2ray-sub](https://github.com/mehdirzfx/v2ray-sub): они собирают свой список подписок поверх нашего сборщика и парсера. Пусть подписки у них обновляются как можно дольше.
+
 PulseProxy — форк с доработками: добавлены healthcheck, структурная валидация конфигов, спецфайл №30 с белыми списками SNI/CIDR, авторские конфиги (`storage.json`) и обновление каждые ~30 минут через GitHub Actions.
 
 ---

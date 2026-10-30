@@ -472,6 +472,8 @@ The core idea, structure, and source code of this project were taken from **[Ave
 
 Thanks also to the maintainer of [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) (source #14 in the table): they replied to our [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) about the broken scheduled workflow the very next day and fixed pushes to main.
 
+Thanks to [mehdirzfx/v2ray-sub](https://github.com/mehdirzfx/v2ray-sub): they build their subscription list on top of our collector and parser. May their subscriptions stay fresh for a long time.
+
 PulseProxy is a fork with improvements: healthcheck, structural config validation, special file #30 with SNI/CIDR white lists, the author's own configs (`storage.json`), and updates every ~30 minutes via GitHub Actions.
 
 ---

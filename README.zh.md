@@ -472,6 +472,8 @@ python main.py                   # 配置将生成到 ../githubmirror
 
 同时感谢 [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) 的维护者（表中第 14 号来源）：我们提交的 [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) 报告定时 workflow 挂掉，对方第二天就回复并修好了向 main 的推送。
 
+感谢 [mehdirzfx/v2ray-sub](https://github.com/mehdirzfx/v2ray-sub)：他们在我们采集器和解析器的基础上构建自己的订阅列表，愿他们的订阅长久保持新鲜。
+
 PulseProxy 是一个带有改进的分支：加入了健康检查、配置结构校验、带 SNI/CIDR 白名单的特殊文件 №30、作者自用配置（`storage.json`），以及通过 GitHub Actions 每约 30 分钟更新一次。
 
 ---

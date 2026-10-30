@@ -472,6 +472,8 @@ python main.py                   # کانفیگ‌ها در ../githubmirror ظا
 
 همچنین از نگهدارندهٔ [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) (منبع شماره 14 در جدول) سپاسگزاریم: به [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) ما دربارهٔ از کار افتادن workflow زمان‌بندی‌شده فردای همان روز پاسخ دادند و پوش به main را درست کردند.
 
+از [mehdirzfx/v2ray-sub](https://github.com/mehdirzfx/v2ray-sub) سپاسگزاریم: آن‌ها فهرست اشتراک خود را روی جمع‌آورنده و پارسر ما ساخته‌اند. امیدواریم اشتراک‌هایشان تا مدت‌ها تازه بماند.
+
 PulseProxy فورکی با بهبودهاست: healthcheck، اعتبارسنجی ساختاری کانفیگ‌ها، فایل ویژهٔ شماره 30 با فهرست‌های سفید SNI/CIDR، کانفیگ‌های اختصاصی (`storage.json`) و به‌روزرسانی هر ~30 دقیقه از طریق GitHub Actions به آن افزوده شده است.
 
 ---
