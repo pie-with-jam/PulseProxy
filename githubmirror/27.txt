@@ -1,7 +1,6 @@
-vless://bdf38176-48e9-40f1-9d1c-d501c333b464@151.101.67.6:443?encryption=none&security=tls&sni=amp-api-edge.apps.apple.com&alpn=h3&type=xhttp&mode=auto&host=kkbr.tm&path=%2Fcrownnet&fp=android#🇨🇦 Canada Montreal
+vless://7b22dce8-7ebd-425b-8ca4-7b6190321985@45.143.166.161:443?encryption=none&security=tls&serviceName=grpc&sni=a.nl-1.bnc-gt.co.uk&type=grpc&fp=edge#🇳🇱 Netherlands Amsterdam
+vless://77290716-1ecb-5e6c-985b-8e2de8bbb434@8.6.112.0:2087?type=ws&security=tls&sni=pl1.vlnet.site&host=pl1.vlnet.site&fp=firefox#🇺🇸 United States San Francisco
+vless://bdf38176-48e9-40f1-9d1c-d501c333b464@151.101.67.6:443?encryption=none&security=tls&sni=amp-api-edge.apps.apple.com&alpn=h3&type=xhttp&mode=auto&host=kkbr.tm&path=%2Fcrownnet&fp=edge#🇨🇦 Canada Montreal
 vless://f04c0548-d934-4361-8d04-b98292a78bf4@185.163.126.96:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=fr-1.techprovide.online&fp=chrome&pbk=KvXGx5NqnYnUxveJ3DSzQ2Zx_FlB6i-narUvQR-igX8&sid=e0f4c8a56b14f29b&type=tcp&headerType=none#🇫🇷 France Nanterre
-vless://d9fe2431-8351-41eb-b956-75d96dec5d4a@2.27.118.10:443?encryption=none&type=tcp&security=reality&sni=ph-nl-s3784.cybercat.network&pbk=goey7Sc4Xm6Nvdukb_DuoUnrkPSV0p4hPWbAmk2_AHc&sid=ecf1d9f7caa6ba67&fp=chrome#🇳🇱 The Netherlands Amsterdam
-vless://50a87e21-f0e2-4b53-a787-91adfe748f63@201.58.183.42:443?security=reality&flow=xtls-rprx-vision&pbk=y0wgEdmPNIKlAMJHeC0teOW_fBnX8tmRE8n1CwOZSwU&sni=13oktober.live&fp=android#🇺🇸 United States Orem
-vless://d342d11e-d224-4463-b982-532309285094@43.174.193.1:443?encryption=none&host=ccc.010304.xyz&path=%2Ffp%3Dchrome&security=tls&sni=ccc.010304.xyz&type=ws&fp=chrome#🇸🇬 Singapore Singapore
-vless://49996e29-93c5-4975-b56f-792acbbf3444@72.56.31.206:443?path=%2Fjx-yjkteysq815pzp&security=tls&host=jyfrj1cims.dev.onappjet.com&type=ws&fp=ios#🇩🇪 Germany Frankfurt am Main
-vless://55ad002b-6cdf-4d76-81bb-91f3f605afc5@157.228.182.225:443?security=reality&encryption=none&pbk=KeICkezIir1GYyiS5bpRLLQqfRWBy4JXHRO-XLzWdFw&headerType=none&type=tcp&flow=xtls-rprx-vision&sni=www.zabbix.com&fp=firefox#🇺🇦 Ukraine Kyiv
+vless://53f03acd-fec1-6685-fc8f-03baf9550cb8@195.141.65.98:443?encryption=none&security=tls&sni=148-253-210-191.sslip.io&alpn=http%2F1.1&type=ws&path=%2Ftest-ws&host=148-253-210-191.sslip.io&fp=chrome#🇨🇭 Switzerland Männedorf
+vless://d342d11e-d224-4463-b982-532309285094@43.174.193.1:443?security=tls&type=ws&sni=ccc.010304.xyz&path=%2F&host=ccc.010304.xyz&fp=android#🇸🇬 Singapore Singapore
