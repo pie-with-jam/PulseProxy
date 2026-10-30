@@ -468,6 +468,8 @@ QR-коды всех подписок лежат в папке [`qr-codes/`](htt
 
 Базовая идея, структура и исходный код этого проекта взяты у **[AvenCores / goida-vpn-configs](https://gitlab.com/avencores/goida-vpn-configs)** — огромное **спасибо автору AvenCores** за проделанную работу! ❤️
 
+Спасибо также мейнтейнеру [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) (источник №14 в таблице): на нашу [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) с упавшим scheduled-workflow ответили на следующий день и починили пуш в main. Среди 29 чужих источников отвечают единицы.
+
 PulseProxy — форк с доработками: добавлены healthcheck, структурная валидация конфигов, спецфайл №30 с белыми списками SNI/CIDR, авторские конфиги (`storage.json`) и обновление каждые ~30 минут через GitHub Actions.
 
 ---

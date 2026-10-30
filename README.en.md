@@ -470,6 +470,8 @@ There are plenty of public configs (sometimes thousands), and running a real con
 
 The core idea, structure, and source code of this project were taken from **[AvenCores / goida-vpn-configs](https://gitlab.com/avencores/goida-vpn-configs)** — a huge **thank you to the author, AvenCores**, for the work they put in! ❤️
 
+Thanks also to the maintainer of [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) (source #14 in the table): they replied to our [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) about the broken scheduled workflow the very next day and fixed pushes to main. Out of 29 third-party sources, replies come from a handful.
+
 PulseProxy is a fork with improvements: healthcheck, structural config validation, special file #30 with SNI/CIDR white lists, the author's own configs (`storage.json`), and updates every ~30 minutes via GitHub Actions.
 
 ---

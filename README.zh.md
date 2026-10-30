@@ -470,6 +470,8 @@ python main.py                   # 配置将生成到 ../githubmirror
 
 本项目的基本思路、结构和源代码取自 **[AvenCores / goida-vpn-configs](https://gitlab.com/avencores/goida-vpn-configs)** —— 非常**感谢作者 AvenCores** 所做的工作！ ❤️
 
+同时感谢 [LalatinaHub/Mineral](https://github.com/LalatinaHub/Mineral) 的维护者（表中第 14 号来源）：我们提交的 [issue #6](https://github.com/LalatinaHub/Mineral/issues/6) 报告定时 workflow 挂掉，对方第二天就回复并修好了向 main 的推送。29 个第三方来源里，能回复的屈指可数。
+
 PulseProxy 是一个带有改进的分支：加入了健康检查、配置结构校验、带 SNI/CIDR 白名单的特殊文件 №30、作者自用配置（`storage.json`），以及通过 GitHub Actions 每约 30 分钟更新一次。
 
 ---
