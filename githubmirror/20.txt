@@ -157,9 +157,6 @@ hysteria2://dsmO0439gj_nX942GJRE_9j39fbcxv52_R@85.209.157.177:8080?security=tls&
 hysteria2://dsmO0439gj_nX942GJRE_9j39fbcxv52_R@85.209.157.177:8080?sni=hopp-transit.1cooldns.com&insecure=0#@OutlineReleasedKey
 hysteria2://e60bc99b-6630-4799-af84-f90ebdc643b6@94.183.170.65:443?sni=hys2.arkonsoft.top&fp=random&alpn=h3#@V2ray_Collector
 hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@152.32.254.68:5010/?obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9&sni=nas.aizhzo.com#Channel%20id:%20@ShadowProxy66%20%F0%9F%87%AD%F0%9F%87%B0
-hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@152.32.254.68:5010?insecure=0&sni=nas.aizhzo.com&obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9#%F0%9F%87%AD%F0%9F%87%B0203438%20%7C%20%E2%9A%A1%EF%B8%8FTelegram%20%3D%20t.me/S...
-hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@152.32.254.68:5010?security=tls&obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9&insecure=0&sni=nas.aizhzo.com#@tootffarangi
-hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@152.32.254.68:5010?security=tls&obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9&insecure=0&sni=nas.aizhzo.com#203438
 hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@nas.aizhzo.com:5010/?obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9&sni=nas.aizhzo.com#HK%20%F0%9F%87%AD%F0%9F%87%B0@Freenetvt%20
 hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@nas.aizhzo.com:5010?insecure=0&sni=nas.aizhzo.com&obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9#%40vmess_ir
 hysteria2://eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ@nas.aizhzo.com:5010?security=tls&obfs=salamander&obfs-password=7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9&insecure=0&sni=nas.aizhzo.com#@Selinc
@@ -1224,8 +1221,6 @@ ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.198:8
 ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.201:8080#%F0%9F%8F%B3%EF%B8%8F%20ShatakVPN%20497003
 ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.218:8080#%F0%9F%8F%B3%EF%B8%8F%20ShatakVPN%20197011
 ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.205:8080#%F0%9F%8F%B3%EF%B8%8F%20ShatakVPN%20224759
-ssr://api.meituan88.com:27561:auth_aes128_md5:rc4-md5:plainZGkxNVBWremarks=8J-HuvCfh7gg576O5Zu9IHwgVVNBIDU=
-ssr://api.meituan88.com:27561:auth_aes128_md5:rc4-md5:plainZGkxNVBWremarks=OEotSHV2Q2ZoN2dnNTc2TzVadTlJSHdnVlZOQg==&obfsparam=Tm1ZMU1qRTROVEl5TG1SdmRYbHBiaTVqYjIw&protoparam=TWpFNE5USXlPakJvWmtOS2F3&group=VTFOU1VISnZkbWxrWlhJ
 trojan://8srrd3e2-x3yv-j85g-jizd-dz9p9pgmsqpa@127.0.0.1:1080?security=tls&type=tcp# LAST UPDATE: 2026/10/31 | 06:27
 trojan://dsdpoes2-oa0b-zenb-b8cf-nz27y42oinip@127.0.0.1:2080?security=tls&type=tcp#This is a free trial project.
 trojan://b7g1qkdu-eiid-0qf9-2utg-7zmnjhqfp42b@127.0.0.1:4080?security=tls&type=tcp# GitHub Argh94
