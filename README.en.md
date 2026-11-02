@@ -97,6 +97,10 @@ Configs are updated **automatically every ~30 minutes** (GitHub Actions + an ext
 
 **[30.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)** — a separate special file for working through white lists (mobile internet, "unattended mode"):
 
+> ⚠️ **White-list mode is not guaranteed right now.** After the latest TSPU update, the system learned to cut off even servers used by two or three people, not just heavily loaded nodes. Experts say TSPU spots suspicious traffic around the clock with AI (the AI part is unverified). The second factor is Yandex Cloud's subnet policy: if an account's IP falls into the state-significant ranges from the Ministry of Digital Development list, the broadband gets capped at 3 Mbit/s (letter below, effective May 1, 2026). File 30 is still built and still passes the healthcheck, but nobody can promise stable bypass under these conditions. Keep spare subscriptions and test several of them.
+>
+> <img src="docs/yandex-cloud-notice.png" alt="Yandex Cloud letter about state-significant subnet restrictions" width="420">
+
 - candidates are gathered from files **1–29** plus the extra source list **`30_urls.json`** (ready-made bypass subscriptions);
 - configs that don't pass the **CIDR/SNI white lists** (`cidrwhitelist.txt`, `sni_domains.json`) are filtered out;
 - every config goes through **structural validation**: glued-together links `&amp;` → `&` are repaired, broken URLs are dropped (invalid UUID, reality without `pbk`, corrupted Base64, etc.);

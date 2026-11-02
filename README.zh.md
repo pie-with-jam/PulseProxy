@@ -97,6 +97,10 @@
 
 **[30.txt](https://github.com/pie-with-jam/PulseProxy/raw/refs/heads/main/githubmirror/30.txt)** —— 一个用于白名单环境的独立特殊文件（移动网络、无人值守模式）：
 
+> ⚠️ **目前无法保证白名单可用。** 最近一次 TSPU 升级后，即使只有两三个人使用的服务器也会被切断，而不只是高负载节点。据专家估计，TSPU 借助 AI 全天候识别可疑流量（关于 AI 的说法未经验证）。第二个因素来自 Yandex Cloud 的子网政策：如果账户的 IP 落在数字发展部清单中的国家重要子网内，带宽会被限制到 3 Mbit/s（见下方来函，自 2026 年 5 月 1 日起）。文件 30 仍会照常生成并通过 healthcheck，但在这种条件下无法承诺稳定绕过。请多准备几份订阅并逐一测试。
+>
+> <img src="docs/yandex-cloud-notice.png" alt="Yandex Cloud 关于国家重要子网限制的通知" width="420">
+
 - 候选配置收集自文件 **1–29** 以及 **`30_urls.json`** 列表中的额外来源（现成的绕行订阅）；
 - 过滤掉不符合 **CIDR/SNI 白名单**（`cidrwhitelist.txt`、`sni_domains.json`）的配置；
 - 每个配置都要经过**结构校验**：修复粘连的 `&amp;` → `&` 链接，丢弃损坏的 URL（无效的 UUID、缺少 `pbk` 的 reality、损坏的 Base64 等）；
